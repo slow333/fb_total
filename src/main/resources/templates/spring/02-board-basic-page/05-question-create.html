@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>question create</h1>
+  <section>
+    <h2>add create button on list</h2>
+    <pre>
+    &lt;button>&lt;a th:href="@{|/sbb-UI/question/question_create|}">질문 추가&lt;/a>&lt;/button>
+</pre>
+    <h4>redirect 되는 페이지 controller에 등록</h4>
+    <pre>
+  @GetMapping("/question_form")
+  public String newQuestionCreate() {
+    return baseUrl + "question_form";
+  }  </pre>
+    <h2>html 페이지 생성 및 controller 등록</h2>
+    <h3>html page form(post) 생성</h3>    <pre>
+&lt;form th:action="@{|/sbb-UI/question/add|}" method="post">
+  &lt;제목&lt;/h3>
+  &lt;input type="text" name="subject" id="subject">
+  &lt;h3>내용&lt;/h3>
+    &lt;textarea name="content" id="content" cols="30" rows="4">&lt;/textarea>
+  &lt;input type="submit" value="질문 추가">
+&lt;/form>    </pre>
+    <h3>controller에 action url 등록</h3>
+    <pre>
+  @PostMapping("/add")
+  public String addQuestion(@RequestParam(value = "subject") String subject,
+                            @RequestParam(value = "content") String content) {
+
+    this.questionService.addQuestion(subject, content);
+
+    return "redirect:/sbb-UI/question/question_list";
+  } </pre>
+    <h4>service에 addQuestion 생성</h4>
+  </section>
+</main>
+</body>
+</html>

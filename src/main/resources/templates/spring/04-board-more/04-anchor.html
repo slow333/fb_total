@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<!-- <nav th:replace="~{ui/utils/navbar :: navbarFragment}"></nav> -->
+<main>
+<h1>앵커 기능 추가하기</h1>
+<section>
+  <h2>답변 앵커 추가</h2>
+  <h3>question_detail.html</h3>
+  <pre>question.answerList에 대한 forEach 아래 추가
+  &lt;a th:id="|answer_${answer.id}|">&lt;/a></pre>
+</section>
+<section>
+  <h2>redirect 수정하기</h2>
+  <pre>return String.format("redirect:/question/detail/%s#answer_%s",
+    answer.getQuestion().getId(), answer.getId()); </pre>
+</section>
+<section>
+  <h2>답변 서비스 수정</h2>
+  <h3>답변 컨트롤러에 답변이 등록된 위치로 이동하려면 Answer 객체가 필요</h3>
+  <pre>//AnswerService
+  public Answer create(...){
+    ...
+    return answer;
+  }</pre>
+</section>
+<section>
+  <h2>답변 컨트롤러 수정</h2>
+  <h3>redirect 내용 수정</h3>
+  <pre>// AnswerController
+@PreAuthorize("isAuthenticated()")
+@PostMapping("/create/{id}")
+public String createAnswer(Model model,
+    ...
+  Answer answer = this.answerService.create(question, answerForm.getContent(), siteUser);
+  return String.format("redirect:/question/detail/%s#answer_%s",
+        answer.getQuestion().getId(), answer.getId());
+... 다른 곳의 redirect도 수정 ...
+  </pre>
+</section>
+</main>
+</body>
+</html>

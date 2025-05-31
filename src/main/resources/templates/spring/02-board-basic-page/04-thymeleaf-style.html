@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>style 적용</h1>
+  <section>
+    <h2>style sheet</h2>
+    <pre>
+&lt;link rel="stylesheet" type="text/css" th:href="@{/style.css}">
+</pre>
+    <h2>inline style 적용</h2>
+    <pre>
+th:style="${'width:500px; display:flex; align-items: center'}"
+    </pre>
+  </section>
+</main>
+</body>
+</html>

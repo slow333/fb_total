@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>Wildcard</h1>
+
+  <h2>wildcard characters</h2>
+  <pre>
+  %	Represents zero or more characters
+  _	Represents a single character
+  [charlist]	Represents a single character within the specified range 
+              (for example, [a-f]) *
+  [^charlist]	Represents a single character not within the specified range 
+              (for example, [^a-f]) *
+  ^ 	Represents any character not in the brackets *
+  - 	Represents any single character within the specified range *
+  {} 	Represents any escaped character **
+ * Not supported in PostgreSQL and MySQL databases.
+ ** Supported only in Oracle databases.
+  </pre>
+
+  <h2>LIKE</h2>
+  <pre>SELECT * FROM Customers
+    WHERE CustomerName LIKE 'a%';</pre>
+  <pre>SELECT * FROM Customers
+    WHERE CustomerName LIKE 'a_%';</pre>
+  <h2>The _ Wildcard</h2>
+  <pre>The _ wildcard represents a single character.
+Return all customers from a city that starts with 'L' 
+followed by one wildcard character, then 'nd' and then two wildcard characters:
+SELECT * FROM Customers
+WHERE city LIKE 'L_nd__';</pre>
+
+ <h2>The % Wildcard</h2>
+  <pre>
+-- Return all customers that starts with 'a' or starts with 'b':
+  SELECT * FROM Customers
+  WHERE CustomerName LIKE 'a%' OR CustomerName LIKE 'b%';
+
+-- Return all customers that starts with "b" and ends with "s":
+  SELECT * FROM Customers WHERE CustomerName LIKE 'b%s';
+
+-- Contains
+  SELECT * FROM Customers WHERE CustomerName LIKE '%or%';
+
+-- Combine Wildcards
+  SELECT * FROM Customers WHERE hire_date LIKE '____-01-__%'; -- 1월 찾기
+  SELECT * FROM Customers WHERE CustomerName LIKE 'a__%';
+  SELECT * FROM Customers WHERE CustomerName LIKE '_r%';
+</pre>
+
+  /**
+   * IN, NOT IN, BETWEEN, NOT BETWEEN
+   * IN은 특정 값이 있는지 확인하는 것
+   * BETWEEN은 범위에 있는지 확인하는 것
+   */
+
+<h1>IN</h1>
+<pre>
+SELECT * FROM Customers
+WHERE City IN ('Berlin', 'London');</pre>
+
+<h2>NOT IN</h2>
+<pre>
+SELECT * FROM Customers
+WHERE City NOT IN ('Berlin', 'London');</pre>
+
+<h2>IN (SELECT)</h2>
+<pre>다른 테이블에서 값을 가져오는 경우
+SELECT * FROM Customers
+WHERE City IN (SELECT City FROM Suppliers);</pre>
+
+<h2>NOT IN (SELECT)</h2>
+<pre>SELECT * FROM Customers
+  WHERE City NOT IN (SELECT City FROM Suppliers);
+  SELECT * FROM product
+  WHERE product.id NOT IN (SELECT quantity FROM order_detail);</pre>
+
+<h1>BETWEEN</h1>
+<pre>SELECT * FROM Customers WHERE City BETWEEN 'Berlin' AND 'London';</pre>
+
+<h2>NOT BETWEEN</h2>
+<pre>SELECT * FROM Products WHERE Price NOT BETWEEN 10 AND 20;</pre>
+
+<h2>BETWEEN with IN</h2>
+<pre>SELECT * FROM Products WHERE Price BETWEEN 10 AND 20
+  AND CategoryID IN (1,2,3);</pre>
+
+<h2>BETWEEN Text Values</h2>  
+<pre>SELECT * FROM Products
+  WHERE ProductName BETWEEN 'Carnarvon Tigers' AND 'Mozzarella di Giovanni'
+  ORDER BY ProductName;
+SELECT * FROM Products
+  WHERE ProductName NOT BETWEEN 'Carnarvon Tigers' AND 'Mozzarella di Giovanni'
+  ORDER BY ProductName;</pre>
+
+<h2>BETWEEN with Date Values</h2>
+<pre>SELECT * FROM Orders
+  WHERE OrderDate BETWEEN '1996-07-04' AND '1996-07-08';</pre>
+
+<h1>Aliases</h1>
+<h3>대부분 AS를 빼도 됨</h3>
+<pre>SELECT ProductName AS Product, Price AS Cost
+  FROM Products
+  WHERE Price BETWEEN 10 AND 20;</pre>
+<pre>SELECT ProductName Product, Price Cost
+  FROM Products
+  WHERE Price BETWEEN 10 AND 20;</pre>
+<pre>SELECT ProductName AS "My Great Products" FROM Products; </pre>
+
+<h2>Concatenate Columns</h2>
+<pre>SELECT name , address +',' + city+',' + country address
+  FROM customer; // 이거 잘안됨
+SELECT name , CONCAT(address,',' ,city,',', country) AS address
+  FROM customer;</pre>
+  
+<H2>Alias for Tables</H2>
+<pre>SELECT o.OrderID, o.OrderDate, c.CustomerName
+  FROM Customers AS c, Orders AS o
+  WHERE c.CustomerName='Around the Horn' AND c.CustomerID=o.CustomerID;</pre>
+<pre>SELECT c.name, o.price, c.address
+  FROM customer c, order_detail o
+  WHERE c.id = o.id;</pre>
+</main>
+</body>
+</html>

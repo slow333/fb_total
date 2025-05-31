@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml">
+<nav th:fragment="navbarFragment" class="navbar" id="navbar">
+  <ul class="navbar" >
+    <li class="nav home"><a href="/">HOME</a></li>
+     <li class="nav board"><a href="/board/question/question_list">UI</a></li>
+     <li class="nav board-list"><a href="/apis/board-list">GO LIST</a></li>
+ <!--/*  <li class="nav spring"><a href="/spring/00-setting/sbb-index">Spring</a></li> */-->
+    <li class="nav login">
+      <a sec:authorize="isAnonymous()" th:href="@{|/board/login|}">login</a>
+      <a sec:authorize="isAuthenticated()" th:href="@{|/board/logout|}">logout</a>
+    </li>
+    <li class="nav login"><a href="/board/signup">SignUp</a></li>
+  </ul>
+  <button class="navBtn">🔻</button>
+</nav>
+</html>

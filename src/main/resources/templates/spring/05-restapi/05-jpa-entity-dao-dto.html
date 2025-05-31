@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>JPA</h1>
+  <h2>Entity →→ Repository→→ Dao→→ Service→→ Controller</h2>
+  <h2>Dto 객체를 이용해서 Entity를 변환해 주던지 Entity를 그래로 쓰던지</h2>
+  <h2>Dto를 통하면 좀 복잡해지나 나중에 뭐 쓸일이 있겠지</h2>
+  <section>
+    <h2>Entity</h2>
+    <pre>
+@Entity(name="product")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductEntity {
+
+  @Id
+  String productId;
+
+  String productName;
+  Integer productPrice;
+  Integer productStock;
+
+}    </pre>
+    <h2>Repository</h2>
+    <pre>
+public interface ProductRepository extends
+      JpaRepository&lt;ProductEntity, String> {
+}    </pre>
+    <h2>Dao: 꼭 필요한가? Service에서 처리해도되는데</h2>
+    <pre>
+@Component
+@RequiredArgsConstructor
+public class ProductDao {
+
+  private final ProductRepository productRepository;
+
+  public ProductEntity saveProduct(ProductEntity productEntity) {
+    return this.productRepository.save(productEntity);
+  }
+
+  public ProductEntity getProduct(String productID) {
+    Optional&lt;ProductEntity> productEntity = this.productRepository.findById(productID);
+    if (productEntity.isEmpty()) {
+      throw new DataNotFoundException("찾는 제품이 없습니다.");
+    }
+    ProductEntity product = productEntity.get();
+    return product;
+  }
+  public List&lt;ProductEntity> getProductList() {
+    return this.productRepository.findAll();
+  }
+}    </pre>
+  </section>
+  <section>
+    <h2>Service</h2>
+    <pre>
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+
+  private final ProductDao productDao;
+
+  public ProductEntity getProduct(String id) {
+    return this.productDao.getProduct(id);
+  }
+
+  public ProductEntity saveProduct(
+          String productId, String productName,
+          int productPrice, int productStock) {
+
+    ProductEntity productEntity = getProductEntity(
+            productId, productName, productPrice, productStock);
+    this.productDao.saveProduct(productEntity);
+
+    return productEntity;
+  }
+  public List&lt;ProductEntity> getProductList() {
+    return productDao.getProductList();
+  }
+
+  private ProductEntity getProductEntity(
+          String productId, String productName,
+          Integer productPrice, Integer productStock){
+    return new ProductEntity(
+            productId, productName, productPrice, productStock
+    );
+  }
+}
+    </pre>
+  </section>
+  <section>
+    <h2>Controller</h2>
+    <pre>
+@RestController
+@RequiredArgsConstructor
+public class ProductController {
+
+  private final ProductService productService;
+
+  @GetMapping("/product/{productId}")
+  public ResponseEntity&lt;ProductEntity> getProduct(
+          @PathVariable("productId") String productId) {
+    long startTime = System.currentTimeMillis();
+    ProductEntity productEntity = this.productService.getProduct(productId);
+    return ResponseEntity.ok(productEntity);
+  }
+  @GetMapping("/products")
+  public List&lt;ProductEntity> getProductList() {
+    return this.productService.getProductList();
+  }
+
+  @PostMapping("/product")
+  public ResponseEntity&lt;ProductEntity> createProduct(
+          @RequestBody ProductDto productDto) {
+    ProductEntity productEntity = productService.saveProduct(
+            productDto.getProductId(), productDto.getProductName(),
+            productDto.getProductPrice(), productDto.getProductStock());
+    return ResponseEntity.status(HttpStatus.CREATED).body(productEntity);
+  }
+}
+    </pre>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>
+  </section>
+</main>
+</body>
+</html>

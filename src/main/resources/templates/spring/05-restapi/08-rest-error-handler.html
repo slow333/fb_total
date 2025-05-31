@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Rest error handle</h1>
+  <h2>@RestControllerAdvice, @ExceptionHandler</h2>
+  <h2>RestController에 애러가 발생하면 Advice를 검색해서 해당되는 ExceptionHandler를 찾아 반환해줌</h2>
+  <section>
+    <h2>공통으로 사용할 수 있는 애러 핸들러를 작성해줌</h2>
+    <pre>
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity&ltMap&lt;String, String>> ExceptionHandler(
+          MethodArgumentNotValidException e) {
+
+    HttpHeaders responseHeaders = new HttpHeaders();
+    HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+    Map&lt;String, String> map = new HashMap();
+    map.put("error type", httpStatus.getReasonPhrase());
+    map.put("code", "400");
+    map.put("message", "error .... !!");
+
+    return new ResponseEntity&lt;>(map, responseHeaders, httpStatus);
+  }
+}    </pre>
+    <h3>Exception을 상속받아서 해당되는 애러가 발생하면 정의한 애러를 발생시킴</h3>
+    <h3>@Valid애러는 MethodArgumentNotValidException를 발생 시킴</h3>
+    <h3>해당 콘트롤러에서 정의하면 그게 먼저 적용됨, 그후에 Global이 적용됨</h3>
+    <h3>해당되는 콘트롤러(주로 POST)의 DTO에 @Valid 어노테이션을 해주면 알아서 애러가 적용됨</h3>
+  </section>
+  <section>
+    <h2>사용자 정의 애러 발생 시키기</h2>
+    <h3>enum으로 클래스 이름 정의하기</h3>
+    <pre>
+public class Constants {
+
+  public enum ExceptionClass {
+    PRODUCT("Product"), BUYER("Buyer");
+
+    String exceptionClass;
+    ExceptionClass(String value){
+      this.exceptionClass = value;
+    }
+    public String getExceptionClass() {
+      return exceptionClass;
+    }
+
+    @Override
+    public String toString() {
+      return getExceptionClass() + " Exception. ";
+    }
+  }
+}    </pre>
+    <h3>GlobalExceptionHandler에 @ExceptionHander 추가 overload</h3>
+    <h4>사용자 정의 애러를 받아서 처리 방식을 정의함</h4>
+    <pre>
+  @ExceptionHandler(MyRestException.class)
+  public ResponseEntity&lt;Map&lt;String, String>> ExceptionHandler(MyRestException e) {
+    HttpHeaders responseHeaders = new HttpHeaders();
+
+    Map&lt;String, String> map = new HashMap&lt;>();
+    map.put("error type", e.getHttpStatusType());
+    map.put("error code", String.valueOf(e.getHttpStatusCode()));
+    map.put("message", e.getMessage());
+
+    return new ResponseEntity&lt;>(map, responseHeaders, e.getHttpStatus());
+  }  </pre>
+    <h3>해당 콘트롤러 Post에 애러 처리를 정의</h3>
+    <pre>
+  @PostMapping("/product")
+  public ResponseEntity&lt;ProductEntity> createProduct(
+          @Valid @RequestBody ProductDto productDto,
+          BindingResult bindingResult) throws MyRestException { //BindingResult와 throws를 정의
+
+    if (bindingResult.hasErrors()) {
+      // 여기에 해당되는 애러 처리를 위한 내용을 정의, valid 적용안되고 아래 정의한 애러로 나옮
+      throw new MyRestException(Constants.ExceptionClass.PRODUCT,
+             HttpStatus.BAD_REQUEST, "뭔가 이상해요, valid 내용은 없음");
+    }
+    valid 내용을 정의할 려면 ... bindingResult 지우고 if 지우고.. throws 지우고...
+    ProductEntity productEntity = productService.saveProduct(
+            productDto.getProductId(), productDto.getProductName(),
+            productDto.getProductPrice(), productDto.getProductStock(), LocalDateTime.now());
+    return ResponseEntity.status(HttpStatus.CREATED).body(productEntity);
+  }
+    </pre>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>
+  </section>
+</main>
+</body>
+</html>

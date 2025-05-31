@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>oop design using class diagram</h1>
+<pre>
+        Artifact                                      Wizard
+     --------------                               --------------
+     id                                           id
+     name            0 ~ n  _________  0 ~ 1      name
+     description     ownedArtifact __ owner
+     imageUrl
+                     wizard는 0~n개의 artifact를 갖고
+                     artifact는 0~1개의 wizard를 갖음
+</pre>
+<h2>class Artifact</h2>
+  <pre>
+    @Getter
+    @Setter
+    @NoArgumentConstructor
+    @Entity
+    public class Artifact implements Serializable {
+      @Id
+      private String id;
+      private String name;
+      private String description;
+      private String imageUrl;
+      @ManyToOne
+      private Wizard owner;
+    }
+  </pre>
+  <h2>class Wizard</h2>
+  <pre>
+    @Getter
+    @Setter
+    @NoArgumentConstructor
+    @Entity
+    public class Wizard implements Serializable {
+      @Id
+      private Integer id;
+      private String name;
+      @OneToMany(casecase = {CasecadeType.PERSIST, CasecadeType.MERGE}, mappedBy = "owner", )
+      private List[Artifact] artifacts;
+    }
+  </pre>
+</main>
+</body>
+</html>

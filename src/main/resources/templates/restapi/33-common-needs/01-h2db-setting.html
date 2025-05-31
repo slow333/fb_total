@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>H2 Database with Test Data</h1>
+<h2>초기 데이터 입력하기 : implements CommandLineRunner</h2>
+    <h3>CommandLineRunner 하면 컴파일이 다 끝나고 run을 수행함</h3>
+  <pre>
+  public class DBDataInitializer implements CommandLineRunner {
+
+    private final ArtifactRepository artifactRepository;
+    private final WizardRepository wizardRepository;
+    == constructor ==;
+
+    public void run(String... args) throws Exception {
+      Artifact a1 = new Artifact();
+      Artifact a1 = new Artifact();
+      ...
+      Artifact a6 = new Artifact();
+      Wizard w1 = new Wizard();
+      Wizard w2 = new Wizard();
+      Wizard w3 = new Wizard();
+      w1.addArtifact(a1); // 새로운 메서드를 추가
+      wizardRepository.save(w1); // cascade에 PERSIST 가 있어서 관련된 artifact도 저장됨
+      wizard에 없는 artifact는 artifactRepository에서 저장해야함
+    }
+  }
+  // wizard class에 아래 메서드 추가
+    void addArtifact(Artifact artifact) {
+      this.artifacts.add(artifact); // wizard list에 artifact 추가
+      artifact.setOwner(this); // artifact에 wizard를 설정
+    }
+  </pre>
+  <h2>H2 db application.yml 설정</h2>
+  <pre>
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console #h2 console 위치
+  datasource:
+    driver-class-name: org.h2.Driver # 드라이버 설정
+    url: jdbc:h2:mem:fullstack # 사용한 db 정의
+    username: sa
+    password:
+  </pre>
+  <h2>security를 적용하면 h2 db security setting 필요 </h2>
+</main>
+</body>
+</html>

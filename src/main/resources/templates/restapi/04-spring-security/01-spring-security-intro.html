@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Introduction Spring Security</h1>
+  <h2>Result data: userInfo(username,enabled,roles,id), token(jwt)으로 구성</h2>
+  <h2>Spring Security Highlights</h2>
+  <h3>HTTP 기본 인증과 Spring Data Jpa를 사용하여 데이터베이스에 대한
+    username과 password에 대한인증을 수행합니다.</h3>
+  <h3>JSON web token(JWT) 생성과 검증은 Spring Security OAuth2 Resource server를 사용(dependency)</h3>
+  <h3>Role-Based authorization or access control(RBAC)</h3>
+  <h3>authentication(사용자 인증) and authorization(사용자 권한 검증) exception</h3>
+  <h2>검증 절차(간략)</h2>
+  <pre>
+    username, passowrd  --- Authenticate(HTTP basic authentication) ---- DB
+                                         |
+                                         | (Success Authentication)
+                                         |
+                                         |--- Generate a JWT
+                                                  |
+    token ----------------------------------------|
+  </pre>
+<!--    <img src="/images/authProcess.png" alt="auth process" width="94%">-->
+    <img src="/images/authProcessDetails.png" alt="auth process detail" 
+     width="100%" style="margin-left:20px">
+</main>
+</body>
+</html>

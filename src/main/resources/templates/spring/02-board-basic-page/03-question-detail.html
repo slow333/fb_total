@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>상세 페이지 만들기</h1>
+  <p>질문제목을 클릭하면 해당 질문과 관련된 상세 페이지로 이동</p>
+  <section>
+<!--/*  ####### service ########## */-->
+    <h2>service를 생성해서 repository를 사용함</h2>
+    <h3>service는 repository를 활용해서 예외처리, 데이터 가공 등을 수행, repository는 그냥 둠</h3>
+    <h4>값이 없거나 매칭이 안될때에 대비한 예외 처리(사용자 예외 생성)</h4>
+    <pre>
+  public Question getQuestion(Integer id) throws DataNotFoundException {
+
+    Optional&lt;Question> question = this.questionRepository.findById(id);
+    if (question.isPresent()) {
+      return question.get();
+    } else {
+      throw new DataNotFoundException("Question not found");
+    }
+  }    </pre>
+    <pre>//사용자 예외 처리
+public class DataNotFoundException extends RuntimeException {
+  public DataNotFoundException(String questionNotFound) {
+    super(questionNotFound);
+  }
+} </pre>
+<!--/*  ######## controller ######### */-->
+    <h2>controller를 생성해서 url mapping을 수행</h2>
+    <pre>
+  @GetMapping(value={"/question/question_detail/{id}", "/question/question_detail"})
+  public String detailQuestion(Model model, @PathVariable(required = false) Integer id) {
+    if(id == null) {
+      id = 3;
+    }
+    Question questionDetail = this.questionService.getQuestion(id);
+
+    model.addAttribute("question", questionDetail);
+    return baseUrl + "question_detail";
+  } </pre>
+    <h4>값이 없을 때 default 값 지정하기</h4>
+    <h3>@GetMapping에서 value로 2개의 값을 정의(id 있는 것과 없는 것)</h3>
+    <h5>@PathVariable(required=false) : 없으면 반드시 값을 넣어야함 아니면 애러</h5>
+    <h5>if문으로 null 처리 해야지 값이 없을 때 애러 안남</h5>
+    <h3>Service</h3>
+    <h3>question_detail.html </h3>
+    <pre>
+th:text="${question.subject}"
+th:text="${question.content}"  </pre>
+<!--/*  ######## html page ######### */-->
+    <h2>question_list.html 수정</h2>
+    <pre>
+&lt;td>
+  &lt;a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}">&lt;/a>
+&lt;/td></pre>
+    <h3>제목에 상세 페이지 URL을 연결하기 위해 타임리프의 th:href 속성을 사용한다.
+      이때 URL은 반드시 @{ 와 } 문자 사이에 입력해야 한다.</h3>
+    <h4>타임리프에서는 /question/detail/과 같은 문자열과 ${question.id}와 같은 자바 객체의 값을 더할 때는 반드시 다음처럼 |로 좌우를 감싸 주어야 한다.</h4>
+    <h3>| | 는 JavaScript의 백틱과 같은 역활을 함</h3>
+  </section>
+  <section>
+  </section>
+</main>
+</body>
+</html>

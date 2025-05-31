@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>프로젝트 구성 절차</h1>
+  <h3>As a [user role], I want [goal], so that [rationale].</h3>
+  <ol>
+    <li>Requirements(요구사항 분석) : user stories    </li>
+    <li>Planning(어찌할지 계획 수립): GitHub Issues
+      <ul>
+        <li>project 생성
+          <ul>
+            <li>dependency : h2 database, web</li>
+          </ul>
+        </li>
+        <li>gitHub repository 생성
+          <ul> local pc
+            <li>git add .  </li>
+            <li>git commit -m "내용" </li>
+            <li>git branch -M main</li>
+            <li>git remote add origin https://해당 repostitory 주소.git</li>
+            <li>git push -u origin main</li>
+            <li>git branch --all</li>
+          </ul>
+        </li>
+        <li>git hub issues 만들기
+          <ul>해당 repository로 이동 > Issues > 생성
+            <li>Artifact CRUD : 요구 사항을 정의 (labels: enhancement)</li>
+            <li>Artifact Assignment : 요구 사항을 정의 (labels: enhancement)</li>
+            <li>Wizard CRUD</li>
+            <li>User CRUD</li>
+            <li>User authentication and authorization</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>Design(설계 하기) : API-first Approach, design a user story</li>
+    <li>implementation and Testing : TDD</li>
+    <li>Deployment : CI/CD</li>
+  </ol>
+
+  <h1>API doc 기반 프로젝트 design</h1>
+  <ol>
+    <li>Requirements(요구사항 분석) : user stories    </li>
+    <li>Planning(어찌할지 계획 수립): GitHub Issues   </li>
+    <li>Design(설계 하기) : API-first Approach, design a user story
+      <ul>
+        <li>API-First Approach: 코드하기전에 API document를 먼저 만듦</li>
+        <li>API doc은 front-end와 back-end 개발 팀간의 약속/규약</li>
+        <li>API doc을 먼저 만들고 개발하면 협력이 잘되고 개발이 빠름</li>
+        <li>OpenAPI Specification : SwaggerHub</li>
+        <li>https://app.swaggerhub.com/apis/Washingtonwei/hogwarts-openapi/1.0.0</li>
+        <li>https://app.swaggerhub.com/apis/winterfall/rest/1.0.0#/  시험 버젼(5월12일 한도)</li>
+      </ul>
+    </li>
+    <li>implementation and Testing : TDD</li>
+    <li>Deployment : CI/CD</li>
+  </ol>
+</main>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>spring boot cors 설정</h1>
+  <section>
+    <h2>CORS Config 클래스( config.java )</h2>
+<pre>
+@Configuration
+public class CorsConfiguration {
+  public WebMbcConfigurer coresConfigurer() {
+      return new WebMbcConfigurer() {
+          public void addCorsMappings(CorsRegistry registry) {
+              registry.addMapping("/**");
+          }
+      }
+  };
+}
+  // OR
+@Configuration // 스프링 빈으로 등록
+public class WebMvcConfig implements WebMvcConfigurer {
+  private final long MAX_AGE_SECS = 3600;
+  @Override
+  public void addCorsMappings(CorsRegistry registry) {
+    // 모든 경로에 대해
+    registry.addMapping("/**")
+    // Origin이 http:localhost:3000에 대해
+    .allowedOrigins("http://localhost:3000")
+    // GET, POST, PUT, PATCH, DELETE, OPTIONS 메서드를 허용한다.
+    .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+    .allowedHeaders("*")
+    .allowCredentials(true)
+    .maxAge(MAX_AGE_SECS);
+  }
+}</pre>
+    <h2>그리고 security 설정에서 cors를 설정해야함</h2>
+    <pre>
+@Configuration
+public class SecurityConfiguration {
+
+   @Bean
+   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+      http
+        .authorizeHttpRequests(request -> request
+             .requestMatchers(HttpMethod.GET, "/**").permitAll()
+        )
+              .csrf(AbstractHttpConfigurer::disable) // csrf 설정
+              .cors(Customizer.withDefaults())  // cors 설정(WebMvcConfigurer 별도 설정 필요
+      ;
+     return http.build();
+   }
+}
+</pre>
+
+  <h1>CORS: spring boot 3, security 6</h1>
+  <section>
+<pre>
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+  @Bean
+  BCryptPasswordEncoder passwordEncoder(){
+    return new BCryptPasswordEncoder();
+  }
+
+  // ⭐️ CORS 설정 CorsConfigurationSource를 반환 받음
+  CorsConfigurationSource corsConfigurationSource() {
+    return request -> {
+      CorsConfiguration config = new CorsConfiguration();
+      config.setAllowedHeaders(Collections.singletonList("*"));
+      // ⭐️⭐️ GET, POST, PUT, DELETE
+      config.setAllowedMethods(Collections.singletonList("*"));
+      // ⭐️⭐️ 허용할 origin
+      //  config.setAllowedOriginPatterns(Collections.singletonList("http://localhost:8080"));
+      //  config.setAllowedOriginPatterns(Collections.singletonList("http://127.0.0.1:8080"));
+      // config.setAllowedOriginPatterns(Arrays.asList("http://127.0.0.1:8080","http://localhost:8080"));
+      config.setAllowedOrigins(Arrays.asList("http://127.0.0.1:8080","http://localhost:8080"));
+      config.setAllowCredentials(true);
+      return config;
+      };
+  }
+// 필터에 cors source, csrf 설정, 허락할 나의(서버측) 경로를 지정
+  @Bean
+  SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+    httpSecurity.httpBasic(HttpBasicConfigurer::disable)
+      // ⭐️⭐️ 위에서 정의 corsConfigurationSource 를 받아서 origin, method, headers를 허락해줌
+      .cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource()))
+      .csrf(AbstractHttpConfigurer::disable)
+        // ⭐️⭐️ xframe 허용 설정
+      .headers(httpSecurityHeadersConfigurer ->
+            httpSecurityHeadersConfigurer
+             .frameOptions(HeaderConfigurer.FrameOptionsConfigurer::sameOrigin))
+  // ⭐️⭐️ 허락할 URL 설정, 허락할 경로("/hello") 지정 해야함,안하면 deny됨
+      .authorizeHttpRequests(authorize ->
+        authorize
+          .requestMatchers("/**").permitAll()  // ⭐️⭐️ 전체 허락, 허락할 경로("/hello") 지정 해야함
+          .requestMatchers("/login").permitAll() // ⭐️⭐️ 허락할 경로
+          .requestMatchers("/question/**").permitAll() // ⭐️⭐️ 허락할 경로
+          .requestMatchers("/answer/**").permitAll() // ⭐️⭐️ 허락할 경로
+      );
+
+    return httpSecurity.build();
+    }
+}</pre>
+  </section>
+</main>
+</body>
+<script>
+  async function testSpringBoot(url) {
+    let response = await fetch(url);
+    let data = await response.text();
+    return data;
+  }
+  testSpringBoot("http://localhost:8090/hello")
+          .then(data => {
+            console.log(data);
+            testout.innerHTML = data;
+          });
+</script>
+</html>

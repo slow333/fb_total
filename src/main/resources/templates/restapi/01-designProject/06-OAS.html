@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>API 명세 및 구현</h1>
+  <p>구현을 위해 설계 우선 접근 방식 사용. OepnAPI 명세(OpenAPI Specification, OAS)를 사용해서 설계하고 나중에 구현</p>
+  <p>API 사양을 설계하고 OpenAPI 코드 생성기를 사용하여 모델 및 API Java 인터페이스에 대한 코드를 생성하는 방법을 배움. 또는 API Java 인터페이스를 구현하기 위한 유사 스프링 컨트롤러를 작성하고 웹 서비스에 대한 글로벌 예외 핸들러를 다루는 방법도 알게 될 것이다.</p>
+  <section>
+    <h2>OAS로 API 설계</h2>
+    <p>YAML, JSON으로 REST API를 작성, 여기서는 OAS V3.0을 사용</p>
+    <P>OAS는 Swagger 명세에 많이 쓰임. 그래서 OAS 지원도구를 흔희 Swagger도구라고 부르기도함.</P>
+    <p>Swagger 도구는 REST API의 전체 개발 수명 주기를 돕는 오픈 소스 프로젝트다.</p>
+    <p>스프링 기반 API 인터페이스를 생성하기 위한 Swagger Codegen 위에서 작동하는 코드를 위해 그래들 프러그인을 사용</p>
+  </section>
+  <section>
+    <h2>OAS의 기본 구조 이해</h2>
+    <p>OpenAPI 정의 구조: openapi, info, externalDocs, servers, tags, paths, components</p>
+    <h2>OAS는 6가지 기본 데이터 타입을 지원</h2>
+    <p>string, number, integer, boolean, objcet, array</p>
+  </section>
+  <section>
+    <h2>project 시작</h2>
+    <h3>spring boot 3 , swagger 적용</h3>
+    <pre>// pom.xml
+      implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    </pre>
+    <pre>// application.yml
+springdoc:
+  api-docs:
+    path: /api-docs
+    swagger-ui:
+      url: /swagger-ui.html
+    enabled: true
+    group-configs:
+      - group: v1
+        packages-to-scan: com.fullstack.backend.controller
+        display-name: v1 API Docs
+    </pre>
+    <h3>CustomOpenApi</h3>
+    <pre>
+      @Bean
+      public OpenAPI customOpenAPI() {
+          return new OpenAPI()
+          .setServers(List.of(new Server()
+                          .url("/")))
+                          .setExternalDocs(new ExternalDocumentation()
+                          .description("JSON Definition")
+                          .url("/swagger.yml"));
+      }
+    </pre>
+    <h3>build.gradle for version 2</h3>
+    <pre>
+plugins {
+    id 'org.springframework.boot' version '3.0.1'
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'java'
+    id 'org.hidetake.swagger.generator' version '2.19.2'
+}
+
+group = 'com.packt.modern.api'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+processResources {
+  dependsOn(generateSwaggerCode)
+}
+
+swaggerSources {
+    ...
+}
+
+compileJava.dependsOn swaggerSources.eStore.code
+sourceSets.main.java.srcDir "${swaggerSources.eStore.code.outputDir}/src/main/java"
+sourceSets.main.resources.srcDir "${swaggerSources.eStore.code.outputDir}/src/main/resources"
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+}
+
+dependencies {
+    // OpenAPI Starts
+    ...
+    // required for schema in swagger generated code
+    implementation 'io.springfox:springfox-oas:3.0.0'
+    // OpenAPI Ends
+...
+}
+
+plugins {
+id 'org.hidetake.swagger.generator' version '2.19.2'
+}
+tasks.named('test') {
+    useJUnitPlatform()
+}
+    </pre>
+  </section>
+</main>
+</body>
+</html>

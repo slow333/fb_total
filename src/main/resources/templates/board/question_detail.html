@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+  <script defer type="text/javascript" th:src="@{/js/menu/loadNav_noNav.js}"></script>
+</head>
+<body>
+<nav th:replace="~{board/utils/navbar :: navbarFragment}"></nav>
+<main class="nosub" style="height: 90vh;">
+<h1>Question detail</h1>
+  <section>
+  <h2>Question detail 화면</h2>
+    <h3 th:text="|제목 : ${question.subject}|"></h3>
+    <h3 th:utext="${@commonUtil.markdown(question.content)}"></h3>
+    <form th:action="@{|/board/answer/create/${question.id}|}"
+          th:object="${answerForm}" method="post">
+<!--/* answerForm을 object로 주입해서 answer 객체를 가져올수 있음 */-->
+      <div th:replace="~{ui/utils/form_errors :: formErrorsFragment}"></div>
+      <div th:if="${#fields.hasAnyErrors()}">
+        <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+      </div>
+      <textarea
+              sec:authorize="isAuthenticated()" th:field="*{content}" cols="40" rows="4">
+      </textarea>
+      <textarea
+              sec:authorize="isAnonymous()" disabled th:field="*{content}" cols="40" rows="4">
+      </textarea>
+      <div>
+        <input type="submit" value="답변 달기" id="add-answer" style="width:50%"/>
+        <a class="edit-delete answer questionLike" href="javascript:void(0);" id="question-like"
+           th:data-uri="@{|/board/question/like/${question.id}|}">likes
+          <span th:text="|[${#lists.size(question.like)}]|"></span></a>
+        <a class="edit-delete" href="javascript:void(0);"
+           th:href="@{|/board/question/modify/${question.id}|}"
+           sec:authorize="isAuthenticated()"
+           th:if="${question.author != null and
+                     #authentication.getPrincipal().getUsername() == question.author.username}"
+           th:text="수정"></a>
+        <a class="edit-delete" href="javascript:void(0);"
+           th:data-uri="@{|/board/question/delete/${question.id}|}"
+           sec:authorize="isAuthenticated()" id="delete_q"
+           th:if="${question.author != null and
+                  #authentication.getPrincipal().getUsername() == question.author.username}"
+           th:text="삭제"></a>
+      </div>
+    </form>
+    </section>
+  <section >
+    <h2 th:text="|${#lists.size(question.answerList)}개의 답변이 있습니다.|"></h2>
+    <div th:each="answer : ${question.answerList}" style="width:96%; margin:6px;">
+      <a th:id="|answer_${answer.id}|"></a>
+      <div th:utext="${@commonUtil.markdown(answer.content)}"></div>
+      <div style="margin-left:10px;">
+      <span class="small date" th:if="${answer.author != null}"
+            th:text="${answer.author.username}" >
+      </span>
+        <span class="small date"
+              th:text="|생성일: ${#temporals.format(answer.createDate, 'yyyy-MM-dd HH:mm')}|">
+        </span>
+        <span class="small date"
+             th:if="${answer.modifyDate != null}"
+             th:text="|수정일: ${#temporals.format(answer.modifyDate, 'yyyy-MM-dd HH:mm')}|">
+        </span>
+        <a class="edit-delete answer answerLike" id="likeAnswer" href="javascript:void(0);"
+           th:data-uri="@{|/board/answer/like/${answer.id}|}">likes
+          <span th:text="|[${#lists.size(answer.like)}]|"></span></a>
+        <a class="edit-delete answer" href="javascript:void(0);"
+            th:href="@{|/board/answer/modify/${answer.id}|}"
+           sec:authorize="isAuthenticated()"
+           th:if="${answer.author != null and
+               #authentication.getPrincipal().getUsername() == answer.author.username}"
+           th:text="수정"></a>
+        <a class="edit-delete answer" href="javascript:void(0);"
+           th:data-uri="@{|/board/answer/delete/${answer.id}|}"
+           sec:authorize="isAuthenticated()" id="delete_a"
+           th:if="${answer.author != null and
+                #authentication.getPrincipal().getUsername() == answer.author.username}"
+           th:text="삭제"></a>
+    </div>
+    </div>
+  </section>
+</main>
+<script>
+  const deleteQ = document.querySelector("#delete_q");
+  const deleteA = document.querySelector("#delete_a");
+  const qLike = document.querySelector(".questionLike");
+  const aLikes = document.querySelectorAll(".answerLike");
+
+  deleteQ?.addEventListener('click', setLocation);
+  deleteA?.addEventListener('click', setLocation);
+  qLike.addEventListener('click', setLocationLike);
+  aLikes.forEach(el => el.addEventListener('click', setLocationLike ));
+
+  function setLocation() {
+    if(confirm("삭제할까요")) { location.href = this.dataset.uri; };
+  }
+  function setLocationLike() {
+    if(confirm("삭제할까요")) { location.href = this.dataset.uri; };
+  }
+</script>
+</body>
+</html>

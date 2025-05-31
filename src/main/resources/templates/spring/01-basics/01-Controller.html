@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Controller</h1>
+  <h3> 브라우저와 같은 클라이언트의 페이지 요청이 발생하면 스프링 부트는 가장 먼저 컨트롤러에 등록된 URL 매핑을 찾고, 해당 URL 매핑을 발견하면 URL 매핑과 연결된 메서드를 실행</h3>
+  <h3>URL 매핑이란 URL과 컨트롤러의 메서드를 일대일로 연결하는 것을 말한다. 컨트롤러의 메서드에 @GetMapping 또는 @PostMapping과 같은 애너테이션을 적용하면 해당 URL과 메서드가 연결된다.</h3>
+  <section>
+    <pre>
+@RestController
+public class Hello {
+  private static final String template = "Hello, %s!";
+  private final AtomicLong counter = new AtomicLong();
+
+  @GetMapping(path="/hello")
+  public String hello() {
+    return "Hello world STS Spring boot0000";
+  }
+
+  @GetMapping(path="/greeting")
+  public Greeting greeting(
+      @RequestParam(value = "name", defaultValue = "World") String name) {
+      return new Greeting(counter.incrementAndGet(), String.format(template, name));
+      // json 객체를 돌려줌: {id: ..., content:...}
+  }
+  @GetMapping("/sbb")
+  @ResponseBody
+  public String index(){
+    return "spring boot board";
+  }
+}
+public record Greeting(long id, String content){}
+json 객체를 만들어줌:{id: 29382, content:"뭐시기"} </pre>
+  </section>
+<section>
+  <div id="springTest"></div>
+</section>
+</main>
+</body>
+<script>
+  async function testSpringBoot(url) {
+    let response = await fetch(url);
+    return response;
+  }
+  async function controllerTest() {
+    let requiredParam =await testSpringBoot("http://localhost:8090/greeting?name=KIM");
+    let rpJson = await requiredParam.json();
+    springTest.innerHTML +=
+      "<div> 1. from @RequiredParam => " +"{ id: "+rpJson.id+", content: "+rpJson.content + " } </div>";
+    let text = await testSpringBoot("http://localhost:8090/hello");
+    let resText = await text.text();
+    springTest.innerHTML += "<div> 2. from /hello getMapping() => " +resText + "</div>";
+    let bbs = await testSpringBoot("http://localhost:8090/sbb");
+    let bbsText = await bbs.text();
+    springTest.innerHTML += "<div>3. from /bbs getMapping() => " + bbsText + "</div>";
+  };
+  controllerTest();
+</script>
+</html>

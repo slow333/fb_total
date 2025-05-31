@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Packaging</h1>
+  <pre>// command line
+  ./mvnw package -DSkipTests
+  target 밑에 tomcat을 내장한 실행 가능한 jar 파일이 생성됨
+  java -jar jar파일
+  jar 파일 압축 풀기:  jar xf jar파일
+  실행 가능한 파일들이 나타남
+  </pre>
+<h1>Container 만들기</h1>
+    <h2>Dockerfile 생성; 패키지 최상단</h2>
+  <pre>
+  FROM eclipse-temurin:17-jre as builder
+WORKDIR application
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} application.jar
+RUN java -Djarmode=layertools -jar application.jar extract
+
+FROM eclipse-temurin:17-jre
+WORKDIR application
+COPY --from=builder application/dependencies/ ./
+COPY --from=builder application/spring-boot-loader/ ./
+COPY --from=builder application/snapshot-dependencies/ ./
+COPY --from=builder application/application/ ./
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+# The JarLauncher class has been relocated to a new package since Spring Boot 3.2.0.
+  // 실행
+  docker build -t kalpa/hogwart-artifact:1.0 .
+  docker images
+  docker run -d -p 8080:8080 kalpa/hogwart-artifact:1.0 // background 실행
+  docker ps -a // 실행중인 도커 보기
+  docker stop 8923c
+  // 한번 실행하고 나면 캐싱되어서 다음에는 빠름
+  </pre>
+</main>
+</body>
+</html>

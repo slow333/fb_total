@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<!-- <nav th:replace="~{ui/utils/navbar :: navbarFragment}"></nav> -->
+<main>
+<h1>마크다운 적용</h1>
+<section>
+  <h2>마크다운 문법</h2>
+  <pre>
+    * ; 머리글
+    1. ; 숫자 머리글
+    1. ; 숫자 머리글
+    **강조** ; 강조
+    스프링 홈페이지는 [https://spring.io](https://spring.io) 입니다. ; [링크 표시]
+    ```
+    있는 그대로 표시됨
+    ```
+    > ; 인용표시
+    # ; 해드라인
+    ## ; 위보다 작은 것  </pre>
+</section>
+<section>
+  <h2>markdown 설치하기</h2>
+  <pre>//build.gradle
+  implementation 'org.commonmark:commonmark:0.21.0'</pre>
+  <h3>commonmark는 스프링 부트가 내부적으로 관리하는 라이브러리가 아니어서 버젼 필요</h3>
+</section>
+<section>
+  <h2>마크다운 컴포넌트 작성</h2>
+  <pre>// CommonUtil.java
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CommonUtil {
+    public String markdown(String markdown) {
+        Parser parser = Parser.builder().build();
+        Node document = parser.parse(markdown);
+        HtmlRenderer renderer = HtmlRenderer.builder().build();
+        return renderer.render(document);
+    }
+}  </pre>
+</section>
+<section>
+  <h2>템플릿에 마크다운 적용</h2>
+  <pre>
+    &lt;div th:utext="${@commonUtil.markdown(question.content)}">&lt;/div>
+  </pre>
+</section>
+  <section>
+    <h2>error</h2>
+    <pre>Ensure that the compiler uses the '-parameters' flag.</pre>
+    <pre> @PreAuthorize("isAuthenticated()")
+  @GetMapping(value = {"/question_detail/{id}", "/question_detail"})
+  public String detailQuestion(Model model,
+     @PathVariable(required = false) Integer id,
+     @PathVariable(required = false, name="id") Integer id, #여기에 명시적으로 name을 표시
+     AnswerForm answerForm) { </pre>
+  </section>
+</main>
+</body>
+</html>

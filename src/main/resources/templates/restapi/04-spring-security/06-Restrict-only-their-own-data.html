@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Restricting user only their own data</h1>
+  <h2>자신의 데이터에만 접근 가능하게 하기; 이거 없으면 다른 사용자 정보에 접근 가능</h2>
+  <h2>자신의 데이터만 지우고, 변경하고, 조회하는게 가능</h2>
+  <pre>
+// jwt를 다 받은 이후에 이 토큰을 이용해서 접근하려 할때
+
+  token =▷ AuthenticationProvider -▷ UserController -▷ UserService -▷ UserRepository
+
+     { "flag":true,
+       "code": 200,               ◁-                 ◁-             ◁-
+       "message": "Delete Success"
+       "data": null }
+  </pre>
+  <h2>적용 순서</h2>
+  <ol>
+    <li>Security 수정: ROLE_user(이러면 자기 뿐만 아니라 다른 사람 것도 볼수 있음.(이래서 아래 필요))</li>
+    <li>jwtProvider: claim("userId",((MyPrincipal)authentication.getPrincipal()).getHoUser().getId())</li>
+    <li>AuthorizationManager implements 한 class 설정: 여기가 복잡함</li>
+    <li>위에서 정의한 class를 security에 access로 해서 정의함</li>
+    <li>integration test도 관련해서 수정 필요</li>
+  </ol>
+  <h2>Security 수정</h2>
+  <pre>
+    .requestMatchers(HttpMethod.GET, "/users").hasRole("ROLE_admin") // 모든 사용자 조회는 admin 만
+    .requestMatchers(HttpMethod.GET, "/users/**").hasRole("ROLE_user")
+    // 이러면 자기 뿐만 아니라 다른 사람 것도 볼수 있음.(이래서 아래 필요)
+  </pre>
+  <h2>jwt에서 userId를 얻기 위한 설정</h2>
+  <pre>
+    @DeleteMapping("/userId")
+    public Result deleteUser(@PathVariable Integer userId, Authentication authentication){
+      this.userService.delete(userId); // 여기에 break point 걸고 delete 실행하면 인증이 보임
+    }
+    // JwtProvider에 claim 추가해서 jwt authentication에서 id를 받아 올수 있게 함
+    JwtClaimSet.builder().claim("userId", ((MyPrincipal)authentication.getPrincipal()).getHoUser().getId())
+  </pre>
+  <h2>AuthorizationManager 설정</h2>
+  <pre>
+  @Component
+public class UserRequestAuthorizationManager implements AuthorizationManager[RequestAuthorizationContext] {
+
+    private static final UriTemplate URI = new UriTemplate("/api/v1/users/{userId}");
+
+    public AuthorizationDecision check(Supplier[Authentication] authenticationSupplier,
+        RequestAuthorizationContext context){
+
+      // URI에서 userId를 추출
+      Map[String, String] uriVariables = URI.match(context.getRequest().getRequestURI());
+      String userIdFromUri = uriVariables.get("userId");
+
+      // jwt auth에서 userId를 추출
+      Authentication authentication = authenticationSupplier.get();
+      String userIdFromJwt = ((Jwt) authentication.getPrincipal()).getClaim("userId").toString();
+      // role이 user 인지 확인
+      boolean hasUserRole = authentication.getAuthorities().stream()
+        .anyMatch(a -] a.getAuthority().equals("ROLE_user"));
+
+      // role이 admin 인지 확인
+      boolean hasAdminRole = authentication.getAuthorities().stream()
+        .anyMatch(a -] a.getAuthority().equals("ROLE_admin"));
+
+      // 2개의 아이디를 비교
+      boolean userIdsMatch = userIdFromUri != null && userIdFromUri.equals(userIdFromJwt);
+      return new AuthorizationDecision(hasAdminRole || (hasUserRole && userIdsMatch));
+    }
+}
+  </pre>
+  <h2>Security 설정</h2>
+  <pre>
+    //DI
+  private final UserRequestAuthorizationManager userRequestAuthorizationManager;
+    // set security
+    .requestMatchers(HttpMethod.GET, "/users").hasRole("ROLE_admin") // 모든 사용자 조회는 admin 만
+    .requestMatchers(HttpMethod.GET, "/users/**").access(userRequestAuthorizationManager) // boolean으로 true면 허가
+  </pre>
+  <h2>integration test 수정 </h2>
+  <pre>admin 일 때 user 일 때에 따라서 수정
+  jwt token 생성을 admin, user 일 때에 맞추어 생성하고 넣어 줘야함
+  접속되는거 안되는 거 등등</pre>
+  <h2>update service 에서 admin 일 때와 user 일 때를 구분; user는 username 정도만 변경 가능</h2>
+  <h3>password 변경은 별도로 다룸..</h3>
+  <pre>
+    public HoUser update(Integer userId, HoUser update){
+     SiteUser oldUser = userRepository.findById(userId)
+            .orElseThrow(() == new ObjectNotFoundException("user", userId));
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+    // If the user not admin
+    if(auth.getAuthorities().stream()
+            .noneMatch(a == a.getAuthority().equals("ROLE_admin"))) {
+      oldUser.setUsername(update.getUsername());
+    } else {
+      oldUser.setUsername(update.getUsername());
+      oldUser.setEnabled(update.isEnabled());
+      oldUser.setRoles(update.getRoles());
+    }
+    return userRepository.save(oldUser);
+    }
+  </pre>
+  <h2>user service test</h2>
+  <pre>
+    updateByAdminSuccess 에 추가할 것
+
+    // admin role을 갖는 사용자를 생성해서 security context에 추가해서 적용함
+    HoUser hoUser = new HoUser();
+    hoUser.setRoles("admin");
+
+    MyUserPrincipal myUserPrincipal = new MyUserPrincipal(hoUser);
+    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+
+    securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(
+        myUserPrincipal, null myUserPrincipal.getAuthorities()
+    ))
+    SecurityContextHoler.setContext(securityContext);
+
+    updateByUserSuccess 에 추가할 것
+
+    // user role을 갖는 사용자를 생성해서 security context에 추가해서 적용함
+    HoUser hoUser = new HoUser();
+    hoUser.setRoles("user");
+
+    MyUserPrincipal myUserPrincipal = new MyUserPrincipal(hoUser);
+    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+
+    securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(
+        myUserPrincipal, null myUserPrincipal.getAuthorities()
+    ))
+    SecurityContextHoler.setContext(securityContext);
+  </pre>
+  <h2>postman 시험</h2>
+</main>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>회원 가입 기능</h1>
+<section>
+  <h2>회원 가입 기능 구성</h2>
+  <p>회원 가입 기능을 구현하려면 회원 정보와 관련된 데이터를 저장하고 이를 관리하는 엔티티와 리포지터리 등을 만들어야 하고, 폼과 컨트롤러와 같은 요소를 생성해 사용자로부터 입력받은 데이터를 웹 프로그램에서 사용할 수 있도록 만들어야 한다.</p>
+  <p>entity → repository → service → controller, templates</p>
+</section>
+<section>
+  <h2>회원 entity 생성</h2>
+  <h3>username, password, email</h3>
+  <h3>entity를 수정하면 테이블을 지우고(drop table tableName)하고 다시 해야 수정한 entity 내용이 적용됨</h3>
+  <pre>
+@Entity
+@Getter
+@Setter
+public class User {
+  @Id
+  @GeneratedValue(strategy="GenerationTyp.IDENTITY")
+  private Integer Id;
+
+  @Column(unique = true)
+  private String username;
+
+  private String password;
+
+  @Column(unique = true)
+  private String email;
+}  </pre>
+  <h2>회원 form 생성</h2>
+  <pre>
+  @Getter
+  @Setter
+  @RequiredArgsConstructor
+  public class UserForm {
+
+    @NotEmpty(message="username은 필수 입니다.")
+    private String username;
+
+    @NotEmpty(message="password는 필수 입니다.")
+    @Size(min=5, message="비밀번호는 최소 5자 입니다.")
+    private String password;
+
+    @Size(max=200)
+//  @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,6}$",
+                      message = "이메일 형식에 맞지 않습니다.")
+    @Email
+    private String email;
+  } </pre>
+  <h2>repository interface 생성</h2>
+<pre>
+  public interface UserRepository extends JpaRepository&lt;User, Integer>{
+
+  }</pre>
+  <h2>service class 생성</h2>
+<pre>
+@RequiredArgsConstructor
+@Service
+public class UserService {
+
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+
+  public UserInfor createUser(String username, String email, String password, LocalDateTime date) {
+    UserInfor user = new UserInfor();
+    user.setUsername(username);
+
+    user.setPassword(passwordEncoder.encode(password));
+  // BCryptPasswordEncoder passwordEncoder = BCryptPasswordEncoder();
+  // user.setPassword(passwordEncoder.encode(password));
+    user.setEmail(email);
+    user.setSubscribeDate(date);
+    this.userRepository.save(user);
+
+    return user;
+} </pre>
+  <h3>SecurityConfig에 password encoder를 Bean으로 생성하여 사용, 나중에 변경하기 편리함</h3>
+  <pre>
+public class SecurityConfig {
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }  </pre>
+  <h2>controller service 생성</h2>
+<pre>
+@Controller
+@RequestMapping("/user/")
+@RequiredArgsConstructor
+public class UserController {
+
+  private final UserService userService;
+
+  @GetMapping("/signup")
+  public String signup(UserForm userForm){
+    return "sbb-UI/user/signup_form";
+  }
+  @GetMapping("/login")
+  public String userLogin() {
+    return "sbb-UI/user/login";
+  }
+  @PostMapping("/signup")
+  public String signup(@Valid UserForm userForm, BindingResult bindingResult){
+    if (bindingResult.hasErrors()) {
+      return "/sbb-UI/user/signup_form";
+    }
+    if(!userForm.getPassword().equals(userForm.getPasswordCheck())){
+      bindingResult.rejectValue("passwordCheck", "passwordInCorrect",
+              "2개의 패스워드가 일치하지 않습니다.");
+      return "/sbb-UI/user/signup_form";
+    }
+    try {
+      this.userService.createUser(userForm.getUsername(), userForm.getEmail(),
+              userForm.getPassword(), LocalDateTime.now());
+    } catch (DataIntegrityViolationException e) {
+      e.printStackTrace();
+      bindingResult.reject("singupFailed", "이미 등록된 사용자입니다.");
+      return "/sbb-UI/user/signup_form";
+    } catch (Exception e) {
+      e.printStackTrace();
+      bindingResult.reject("singupFailed", e.getMessage());
+      return "/sbb-UI/user/signup_form";
+    }
+    return "redirect:/sbb-UI/question/question_list";
+  }
+}</pre>
+  <h3>사용자 ID 또는 이메일 주소가 이미 존재할 경우에는 DataIntegrityViolationException이라는 예외가 발생하므로
+    '이미 등록된 사용자입니다.'라는 오류 메시지가 화면에 표시하도록 했다.
+    그리고 그 밖에 다른 예외들은 해당 예외에 관한 구체적인 오류 메시지를 출력하도록
+    e.getMessage()를 사용했다. 여기서 bindingResult.reject(오류 코드, 오류 메시지)는
+    UserCreateForm의 검증에 의한 오류 외에 일반적인 오류를 발생시킬 때 사용한다.</h3>
+  <h2>template 만들기</h2>
+  <pre>
+  &lt;div class="subscribe">
+    &lt;h1>가입 하세요&lt;/h1>
+    &lt;form th:action="@{|/user/create|}" class="subscribe-form"
+      th:object="${userForm}" method="post">
+      &lt;div th:replace="~{/sbb-UI/utils/form_errors :: formErrorsFragment}">&lt;/div>
+
+      &lt;div>
+        &lt;input type="text" id="username" th:field="*{username}"
+            placeholder="username">
+      &lt;/div>
+      &lt;div>
+        &lt;input type="password" id="password" name="password"
+            placeholder="password">
+      &lt;/div>
+      &lt;div>
+        &lt;input type="text" id="password" th:field="*{email}"
+           placeholder="email">
+      &lt;/div>
+      &lt;div>
+        &lt;input type="submit" value="SUBMIT" id="login-btn">
+      &lt;/div>
+    &lt;/form>
+  &lt;/div>  </pre>
+</section>
+</main>
+</body>
+</html>

@@ -1,0 +1,516 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200..900&display=swap');
+
+* {
+  margin: 0;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+:root {
+  --fontstack: 'Noto Sans KR', sans-serif;
+  --colorprimary:black;
+  --colorsecondary: white;
+  --coloraccent: #712cf9;
+  --colorgray:#777;
+  --colordark: #333;
+  --colorbright:#f1f1f1;
+  --colorbrightest:#fafafa;
+  --h1: 24px;
+  --h2: 20px;
+  --h3: 18px;
+  --h4: 16px;
+  --p: 16px;
+  --subtext: 12px;
+  --transition: 0.4s ease-in-out;
+  --shadow: #00000030 0px 0px 10px 0px;
+  --shadowdark: #00000030 0px 3px 6px 3px;
+}
+body {
+  font-family: var(--fontstack), serif ;
+  height: 100%;
+  position: relative;
+  background-color: #f2f2f2;
+}
+
+main {
+  padding: 50px 5px 0 202px;
+  overflow: auto;
+  margin:0 0 40px 0;
+  height: auto;
+  min-height: calc(100vh - 76px);
+}
+main.nosub {
+  padding: 50px 5px;
+}
+
+.no-aside {
+  margin-top: 60px;
+  margin-left: 17px;
+  min-height: calc(100vh - 102px);
+}
+.apis-li {
+  font-size: 18px;
+  font-weight:bold;
+  font-family: var(--fontstack);
+  list-style: none;
+}
+.apis-li a,
+.apis-li a:visited,
+.apis-li a:link {
+  display:inline-block;
+  text-decoration:none;
+  color: darkblue;
+  padding: 8px 12px;
+
+}
+.apis-li a:hover {
+  cursor:pointer;
+  background: green;
+  color: antiquewhite;
+}
+
+section {  padding: 0 10px 10px 10px; }
+footer {
+  width: 100%;
+  padding: 0 20px;
+  position : absolute;
+  background: var(--colorgray);
+  color: var(--colorsecondary);
+}
+h1 {
+  font-size: var(--h1);
+  margin: 10px 0 18px 0;
+  text-align: center;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+h1:before {  content: "[ "; }
+h1:after {  content: " ]"; }
+h2, h3, h4, h5, h6 {
+  font-weight: bolder;
+  margin: 7px 10px;
+  text-align: left;
+}
+h2 {
+  font-size: var(--h2);
+  margin-top: 10px;
+  padding: 3px 0 3px 10px;
+  color: rgb(235, 233, 230);
+  background: #4b4a4a;
+  font-family: Roboto, "Noto Sans KR", serif;
+  border-radius: 4px;
+  box-shadow: var(--shadowdark);
+  width: 96%;
+}
+
+
+h3 {
+  font-size: var(--h3);
+  margin: 7px 0 0 18px;
+  font-weight: bold;
+  font-family: Roboto, "Noto Serif KR", serif;
+}
+
+h4, h5, h6  {
+  font-size: var(--h4);
+  font-weight: normal;
+  margin: 7px 0 0 20px;
+  font-family: Roboto, "Noto Serif KR", serif;
+}
+h4:before {
+  content: "• ";
+  padding-left: 8px;
+  color: #bd0000;
+}
+h5, h6 {font-size: var(--p)}
+h5:before {
+  content: " º ";
+  padding-left: 18px;
+  color: #0021dc;
+}
+.linebreak { white-space: pre-wrap; }
+p {
+  line-height: 1.6;
+  font-size: var(--p);
+  padding-left: 6px;
+  font-family: Roboto, "Noto Serif KR", serif;
+  margin-top: 10px;
+}
+
+code, pre {
+  font-family: "consolas",'Noto Sans KR', monospace;
+  line-height: 1.6;
+/*  background: var(--colorbrightest);*/
+  padding-left: 10px;
+  margin: 3px 0 0 20px;
+  width: 94%;
+  font-size: 15px;
+}
+code {
+  font-size: inherit;
+  padding: 0;margin:0;
+}
+pre {
+  border-left: 1px solid #bbb;
+  border-bottom: 2px solid teal;
+  /* border-bottom-left-radius: 40px; */
+  border-bottom-right-radius: 10px;
+  /* border-bottom-width: 50px; */
+}
+table {
+  display: table;
+  box-sizing: border-box;
+  text-indent: initial;
+  unicode-bidi: isolate;
+  border-spacing: 2px;
+  border: 1px solid var(--colorbright);
+  border-collapse: collapse;
+  font-size: var(--p);
+  width: 100%;
+  margin: 4px;
+}
+tr, td, th {
+  border: 1px solid var(--colorbright);
+  border-collapse: collapse;
+}
+
+/* ====== nav menu ====== */
+#navbar {
+  position: fixed;
+  display: flex;
+  justify-content: space-between;
+  top: 0;
+  align-items: center;
+  width: 100%;
+  background-size: cover;
+  background-color: var(--coloraccent);
+  color: var(--colorsecondary);
+  box-shadow: var(--shadowdark);
+  z-index: 100;
+}
+.navBtn, .footerBtn {
+  background: var(--colorbright);
+  color: var(--coloraccent);
+  margin-right: 20px;
+}
+.navBtn:hover, .footerBtn:hover {
+  background: #dddddd;
+  cursor: pointer;
+}
+#navbar ul {
+  display: flex;
+}
+.navbar > .nav.login {
+  margin-left: 15px;
+}
+.navbar > .nav.login:before {
+  content:" | "; color: #bbb;
+  margin-right: 15px;
+}
+.navbar > .nav.login a {
+  background: green;
+  color: white;
+  border: 1px solid white;
+  border-radius: 6px;
+  display: inline-block;
+  padding: 4px 13px;
+  margin-top: 4px;
+}
+.navbar > .nav.login a:hover {
+  background: var(--coloraccent)
+}
+.navbar li {
+  cursor: pointer;
+  list-style: none;
+  margin:0;
+}
+.navbar li a {
+  display: inline-block;
+  cursor: pointer;
+  padding: 10px 20px;
+}
+.navbar a, .navbar a:visited, .navbar a:link {
+  text-decoration: none;
+  color: var(--colorsecondary);
+}
+.navbar li a:hover {
+  background-color: var(--colorbright);
+  color: black;
+}
+/* #### aside menu #### */
+.aside {
+  position: fixed;
+  top: 30px;
+  display: flex;
+  flex-direction: column;
+  width: 190px;
+  box-shadow: var(--shadow);
+  padding: 18px 0 10px 0;
+  height: 100%;
+  overflow-y: auto;
+  transition: var(--transition);
+  background-color: #c2c2c2;
+}
+.aside .title {
+  font-size: 20px;
+  font-weight: bolder;
+  color: #333;
+  text-align: center;
+  padding: 4px 0;
+  margin:0 ;
+  font-family: var(--fontstack), serif;
+  width:100%;
+}
+.aside > ul {
+  display: flex;
+  flex-direction: column;
+  padding: 0 ;
+  margin-left: 0;
+  background-color: #f1f1f1;
+}
+.aside > ul h2 {
+  font-size: 16px;
+  padding: 3px 0 3px 6px;
+  /* padding:2px 0;  */
+  margin:6px 0 2px 4px;
+  border-top: 3px solid #00922c;
+  border-bottom: 3px solid #00922c;
+  color: var(--coloraccent);
+  background: rgb(241, 240, 238);
+  overflow:hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.aside > ul:hover h2{
+  overflow:visible;
+  white-space: normal;
+}
+.aside > ul h2:before {  content: ""; }
+.aside ul li {
+  list-style: none;
+}
+.aside ul li:hover {
+  background-color: var(--colorbright);
+  cursor: pointer;
+}
+.aside ul li ul {
+  padding: 2px;
+  margin:0;
+}
+
+.aside .content.active {  display: none; }
+.aside .content a{
+  width:188px;
+  font-size: 14px;
+  margin-left: 6px;
+  padding: 2px 0 2px 4px;
+  display: inline-block;
+  text-decoration: none;
+  width: 100%;
+  overflow:hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.aside .content:hover a{
+  cursor: pointer;
+  overflow:visible;
+  white-space: normal;
+  color: #fff;
+  background-color: var(--coloraccent);
+}
+.aside a:link,
+.aside a:visited
+{
+  text-decoration: none;
+  color: var(--coloraccent);
+}
+
+.aside a.currentUrl {
+  color : white;
+  background :orangered;
+}
+
+/* ######### footer style ############ */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/*etc style*/
+hr {
+  margin: 1rem 0;
+  padding: 0;
+  border: 1px dotted var(--coloraccent);
+}
+button, .btn, input {
+  display: inline-block;
+  padding: 4px 10px;
+  border: none;
+  background-color: var(--coloraccent);
+  color: var(--colorsecondary);
+  font-size: 18px;
+  margin: 2px 0;
+  border-radius: 4px;
+}
+
+a.edit-delete {
+  padding: 4px 10px; text-decoration: none;
+  background: #333; color: #fff;
+  border: none; border-radius: 6px;
+}
+a.edit-delete.answer {
+  font-size: 12px;
+}
+a.edit-delete:hover {
+  background: #888;
+  cursor:pointer;
+}
+input {
+  background-color: var(--colorbright);
+  color: var(--colorprimary);
+  margin-left: 10px;
+}
+/** ############# about board ui START ############## */
+input[type="submit"]{
+  display: inline-block;
+    padding: 4px 10px;
+    border: none;
+    background-color: var(--coloraccent);
+    color: var(--colorsecondary);
+    font-size: 18px;
+    margin: 2px 0;
+    border-radius: 4px;
+}
+input[type="submit"]:hover{
+  background-color: #aaa;
+  cursor:pointer;
+}
+textarea {
+  font-size: 17px; width:100%;
+/**  max-height: 130px;
+  max-width: 500px;  */
+  font-family: var(--fontstack), serif;
+}
+form #subject, form #content, form #add-question ,form #add-answer{
+  margin:10px; width:98%;
+}
+#answer-date {
+  text-align: right;
+  font-size: 15px;
+}
+
+td > a {
+  text-decoration: none;
+  color: black;
+}
+#error-form {
+  color:red; font-size: 17px; margin:10px;
+}
+/** ############# about board ui END ############ */
+.accent {
+  font-weight: bold;
+  color: var(--coloraccent);
+}
+/** 사이드메뉴 숨기기 관련*/
+#hamburger {
+  display: none;
+}
+#hamburger img {
+  width: 40px;
+  filter: invert(1);
+}
+#hamburger:hover img {
+  cursor: pointer;
+}
+.aside.is-active {
+  display: block;
+  left: 60px;
+  background-color: var(--colorbright);
+}
+@media screen and (max-width: 900px) {
+  .aside { display: none; float: none;}
+  main { display:block;
+    width:96%;
+    margin:0 auto;
+    padding: 40px 5px 5px 5px;
+    min-height: 96.1vh;
+  }
+  #hamburger {
+    display: block;
+    position: fixed;
+    top: 60px; left: 10px;
+    z-index: 1009;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ====== paging ====== */
+.pagination{
+  display: flex; justify-content: center;
+}
+.pagination li {
+    display: inline-block;
+    cursor: pointer;
+    list-style: none;
+    margin-top: 10px
+}
+.pagination li a {
+    cursor: pointer;
+    list-style: none;
+    padding: 2px 6px;
+    text-decoration: none;
+    border: 1px solid #ccc;
+  color: gray;
+}
+.pagination li a.active {
+  background: #333; color: #fefefe;
+}
+.small.answer, .small.date {
+  font-size: 12px; color: white;
+  background: #444;
+  padding: 4px 8px;
+}
+/** ######## login, subscribe form ######### */
+.no-aside.login, .subscribe {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+.no-aside.login > h1 {
+  margin:10px 0 20px; padding:0;
+}
+.login-form, .subscribe-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.login-form div input,
+.login-subscribe div input {
+  display:inline-block;
+  width : 300px;
+  margin:0; padding: 6px 20px;
+}
+.login-form div input[type="submit"],
+.subscribe-form div input[type="submit"] {
+  width:300px; margin:0;
+}
+.subscribe > h1 {
+  margin: 20px
+}
+.login-form #username, .login-form #password ,
+.subscribe-form #username, .subscribe-form #password,
+.subscribe-form #email  {
+
+}
+
+.testResult {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--coloraccent);
+}

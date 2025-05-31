@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>User CRUD</h1>
+  <h2>user는 기본 class에 있어서 다른 이름으로 해야함. SiteUser</h2>
+  <h2>user entity 생성</h2>
+    <h3>user는 id, username, password, enabled, roles로 구성(validation 적용)</h3>
+  <h2>User Dto 생성(record)</h2>
+    <h3>password 제외</h3>
+    <h3>conveter 생성</h3>
+  <h2>controller 생성</h2>
+    <h3>add(save)에서 받을 객체는 entity 개체로 받음(생성시 패스워드 필요)</h3>
+    <h3>update 할 때 패스워드 없이 dto로 함(password는 별도로 처리 필요)</h3>
+  <h2>service, repository 생성</h2>
+  <h2>DB initializer에 user 생성 및 저장</h2>
+    <h3>DB에서 password가 plain text로 보임</h3>
+  <h2>Test 생성 및 수행</h2>
+</main>
+</body>
+</html>

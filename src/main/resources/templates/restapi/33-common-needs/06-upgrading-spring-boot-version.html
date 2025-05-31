@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Spring boot application upgrade</h1>
+  <h2>절차</h2>
+<ol>
+  <li>release note와 migration guideline을 검토; 변경사항</li>
+  <li>backup and use version control</li>
+  <li>update dependencies</li>
+  <li>update configuration properties in application.yml and application-*.yml</li>
+  <li>Replace/remove deprecated classes/methods/constructors.
+  <div>(github.com/spring-projects/spring-boot/wiki/Spring-boot-3.2.0-Configuration-Changelog)</div>
+  </li>
+  <li>test after upgrading</li>
+  <li>upgrade는 우선 minor version을 최신으로 하고 다음 major version을 업그레이드
+  <div>2.7.0 ; 2.7.8 ; 2.8.8 ; 3.3.4 이렇게 순차적으로 해야 안전함</div></li>
+  <li>start with a test environment</li>
+  <li>log 검토</li>
+  <li>spring actuator 보기</li>
+  <li>업그레이드 문서화 하기</li>
+</ol>
+  <h2>intellij migrator</h2>
+  <h3>pom.xml; runtime: org.springframework.boot: spring-boot-propteries-migrator</h3>
+  <h4>console 창에 변경 할 내용을 볼수 있음 BUT 이거 없이 자체 기능을 활용하는게 더 좋음</h4>
+  <h3>menu; Code ; Inspect Code.. ; whole project 하면 변경할 내용을 보여줌 </h3>
+  <h4>해당 클레스로 가서(download 해야 자세한 내용 보임) 어떻게 변경하지는 참고해서 애러난 곳 수정</h4>
+  <h4>꼼꼼히 읽어 보면 알수 있음, 이직은 잘 못하겠음</h4>
+</main>
+</body>
+</html>

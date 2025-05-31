@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:fullstack
+    username: sa
+    password:
+  jpa:
+    show_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cloud:
+    azure:
+      storage:
+        account-name: ${AZURE_STORAGE_ACCOUNT_NAME:my-azure-account-name-from-azure-subscribe}
+        account-key: ${AZURE_STORAGE_ACCOUNT_KEY:my-azure-account-kye-from-azure-subscribe}
+#   최대로 서버에 올릴 수 있는 파일 크기 지정
+  servlet:
+    multipart:
+      max-file-size: 2MB # 한개 파일
+      max-request-size: 10MB # 여러개 파일
+ai:
+  openai:
+    endpoint: ${AI_OPENAI_ENDPOINT:https://api.openai.com/v1/chat/completions}
+    api-key: ${AI_OPENAI_API_KEY:MY_API_KEY}

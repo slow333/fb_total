@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>GitHub</h1>
+  <h2>GitHub repository 생성</h2>
+    <ul>local pc 수행
+      <li>git add .  </li>
+      <li>git commit -m "내용" </li>
+      <li>git branch -M main</li>
+      <li>git remote add origin https://해당 repostitory 주소.git</li>
+      <li>git push -u origin main</li>
+      <li>git branch --all</li>
+    </ul>
+  <h2>git hub issues 만들기</h2>
+  <ul>해당 repository로 이동 > Issues > 생성
+    <li>Artifact CRUD : 요구 사항을 정의 (labels: enhancement)</li>
+    <li>Artifact Assignment : 요구 사항을 정의 (labels: enhancement)</li>
+    <li>Wizard CRUD</li>
+    <li>User CRUD</li>
+    <li>User authentication and authorization</li>
+  </ul>
+  <h2>새로 이슈를 시작할 때</h2>
+  <ol>
+    <li>git branch something-do</li>
+    <li>작업을 수행하고 다 끝났으면</li>
+    <li>git switch main</li>
+    <li>git pull</li>
+    <li>git switch something-do</li>
+    <li>git add .</li>
+    <li>git commit -m "some comment"</li>
+    <li>git push(git push --set-upstream origin something-do)</li>
+    <li>github로 이동해서 merge를 수행하면 main으로 통합됨(Reviewer 생성해야함)</li>
+    <li>pc로 이동</li>
+    <li>git switch main</li>
+    <li>git pull(git fetch + git merge)</li>
+  </ol>
+</main>
+</body>
+</html>

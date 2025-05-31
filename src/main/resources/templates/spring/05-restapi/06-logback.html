@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Logback</h1>
+  <h2>log4j , logback*, log4j2</h2>
+  <section>
+    <h2>spring boot는 resources/logback-spring.xml에서 설정</h2>
+    <pre>
+&lt;?xml version="1.0" encoding="UTF-8" ?>
+      &lt;configuration scan="true" scanPeriod="30 seconds">
+
+  &lt;property name="CONSOLE_PATTERN"
+      value="%d{yyyy-MM-dd HH:mm:ss.SSS}
+          %highlight([%-5level]) %magenta([%thread]) %logger{5} - %msg %n" />
+
+ <!-- Console appender 설정 -->
+  &lt;appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    &lt;filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      &lt;level>DEBUG&lt;/level>
+      &lt;/filter>
+    &lt;encoder>
+      &lt;Pattern>${CONSOLE_PATTERN}&lt;/Pattern>
+      &lt;/encoder>
+  &lt;/appender>
+  &lt;root level="INFO">
+    &lt;appender-ref ref="STDOUT"/>
+  &lt;/root>
+&lt;/configuration>
+    </pre>
+    <h2>활용하기</h2>
+    <pre>
+@RestController
+@RequiredArgsConstructor
+public class ProductController {
+
+  private final ProductService productService;
+  private final Logger LOGGER = LoggerFactory.getLogger(ProductController.class);
+
+  @GetMapping("/product/{productId}")
+  public ResponseEntity&lt;ProductEntity> getProduct(
+          @PathVariable("productId") String productId) {
+    long startTime = System.currentTimeMillis();
+    LOGGER.info("[ProductController] perform {} of REst api", "getProduct");
+    ProductEntity productEntity = this.productService.getProduct(productId);
+    LOGGER.info("[ProductController] productId = {}, productName = {}, ResponseTime = {}",
+            productId, productEntity.getProductName(), System.currentTimeMillis() - startTime);
+    return ResponseEntity.ok(productEntity);
+  }
+}
+    </pre>
+  </section>
+  <section>
+    <h2>Service</h2>
+    <pre>
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+
+  private final ProductDao productDao;
+
+  public ProductEntity getProduct(String id) {
+    return this.productDao.getProduct(id);
+  }
+
+  public ProductEntity saveProduct(
+          String productId, String productName,
+          int productPrice, int productStock) {
+
+    ProductEntity productEntity = getProductEntity(
+            productId, productName, productPrice, productStock);
+    this.productDao.saveProduct(productEntity);
+
+    return productEntity;
+  }
+  public List&lt;ProductEntity> getProductList() {
+    return productDao.getProductList();
+  }
+
+  private ProductEntity getProductEntity(
+          String productId, String productName,
+          Integer productPrice, Integer productStock){
+    return new ProductEntity(
+            productId, productName, productPrice, productStock
+    );
+  }
+}
+    </pre>
+  </section>
+  <section>
+    <h2>Controller</h2>
+    <pre>
+@RestController
+@RequiredArgsConstructor
+public class ProductController {
+
+  private final ProductService productService;
+
+  @GetMapping("/product/{productId}")
+  public ResponseEntity&lt;ProductEntity> getProduct(
+          @PathVariable("productId") String productId) {
+    long startTime = System.currentTimeMillis();
+    ProductEntity productEntity = this.productService.getProduct(productId);
+    return ResponseEntity.ok(productEntity);
+  }
+  @GetMapping("/products")
+  public List&lt;ProductEntity> getProductList() {
+    return this.productService.getProductList();
+  }
+
+  @PostMapping("/product")
+  public ResponseEntity&lt;ProductEntity> createProduct(
+          @RequestBody ProductDto productDto) {
+    ProductEntity productEntity = productService.saveProduct(
+            productDto.getProductId(), productDto.getProductName(),
+            productDto.getProductPrice(), productDto.getProductStock());
+    return ResponseEntity.status(HttpStatus.CREATED).body(productEntity);
+  }
+}
+    </pre>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>
+  </section>
+</main>
+</body>
+</html>

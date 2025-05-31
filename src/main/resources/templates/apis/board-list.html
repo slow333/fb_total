@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+  <script defer type="text/javascript" th:src="@{/js/menu/loadNav_noNav.js}"></script>
+</head>
+<body>
+<nav th:replace="~{board/utils/navbar :: navbarFragment}"></nav>
+<main class="nosub" style="height: 90vh;">
+<h1>보드 내용</h1>
+  <ul class="content-toggle" id="apis-board">
+    <li class="apis-li"><a href="/board/question/question_list">Question List</a></li>
+    <li class="apis-li"><a href="/board/question/question_detail">Question Detail</a></li>
+    <li class="apis-li"><a href="/board/question/create">Question Form</a></li>
+  </ul>
+<h1>Rest-TDD 내용</h1>
+  <ul class="content-toggle" id="apis-masool">
+    <li class="apis-li"><a href="/masool/arts">artifacts list</a></li>
+    <li class="apis-li"><a href="/masool/wizs">wizards list</a></li>
+  </ul>
+</main>
+<script>
+  fetch("http://localhost:90/greeting?wizName=jin")
+  .then(response => response.text())
+  .then(data => console.log(data));
+</script>
+</body>
+</html>

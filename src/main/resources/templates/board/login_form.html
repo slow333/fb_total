@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+  <script defer type="text/javascript" th:src="@{/js/menu/loadNav_noNav.js}"></script>
+</head>
+<body>
+<nav th:replace="~{board/utils/navbar :: navbarFragment}"></nav>
+<main class="nosub" style="height: 90vh;">
+  <div class="login-signup"  style="height: 90vh; display:flex; flex-direction:column;
+     align-item:center;margin-right:150px;margin-top:100px;">
+    <h1>Login</h1>
+    <form class="subscribe-form" th:action="@{|/board/login|}" method="post">
+      <div th:if="${param.error}">
+        <div style="color:red; font-size:18px;">사용자 ID 또는 비밀번호를 확인해 주세요</div>
+      </div>
+      <div>username : <br>
+        <input type="text" id="username" name="username" placeholder="username"/>
+      </div>
+      <div>패스워드 : <br>
+        <input type="password" id="password" name="password" placeholder="password"/>
+      </div>
+      <div>
+        <input type="submit" value="LOGIN" id="login-btn"/>
+      </div>
+      <div> <a class="edit-delete" href="/board/signup">가입하세요</a> </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

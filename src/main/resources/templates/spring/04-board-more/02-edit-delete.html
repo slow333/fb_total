@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<!-- <nav th:replace="~{ui/utils/navbar :: navbarFragment}"></nav> -->
+<main>
+<h1>수정과 삭제 기능 추가</h1>
+<section>
+  <h2>수정일시 추가</h2>
+  <h3>question, answer entity에 modifyDate 추가</h3>
+  <pre>private localDateTime modifyDate;</pre>
+</section>
+<section>
+  <h2>질문 수정 기능 생성</h2>
+  <h3>question_detail.html에 modify 메뉴생성</h3>
+  <pre>a tag 추가
+  &lt;a th:href="@{|/ui/question/modify/${question.id}|}"
+  sec:authorize="isAuthenticated()"
+  th:if="${question.author != null and #authentication.getPrincipal().getUsername() ==
+    question.author.username}" th:text="수정"></pre>
+  <p>[수정] 버튼이 로그인한 사용자와 글쓴이가 동일할 경우에만 노출되도록 #authentication.getPrincipal().getUsername() == question.author.username을 적용했다. #authentication.getPrincipal()은 타임리프에서 스프링 시큐리티와 함께 사용하는 표현식으로, 이를 통해 현재 사용자가 인증되었다면 사용자 이름(사용자 ID)을 알 수 있다. 만약 로그인한 사용자와 글쓴이가 다르다면 이 [수정] 버튼은 보이지 않을 것이다.</p>
+  <h3>question controller에 modify 추가</h3>
+  <h4>QuestionForm, @PathVariable, Principal을 받아 question_form을 반환함</h4>
+  <h4>@PreAuthorize("isAuthenticated()") 추가 해야함</h4>
+  <p>만약 현재 로그인한 사용자와 질문의 작성자가 동일하지 않을 경우에는 '수정 권한이 없습니다.'라는 오류가 발생하도록 했다. 그리고 수정할 질문의 제목과 내용을 화면에 보여 주기 위해 questionForm 객체에 id값으로 조회한 질문의 제목(subject)과 내용(object)의 값을 담아서 템플릿으로 전달했다. 이 과정이 없다면 질문 수정 화면에 '제목', '내용'의 값이 채워지지 않아 비워져 보일 것이다. 그런데 여기서 한 가지 짚고 넘어가야 할 것이 있다. 질문을 수정할 수 있는 새로운 템플릿을 만들지 않고 질문을 등록했을 때 사용한 question_form.html 템플릿을 사용한다는 점이다.</p>
+  <h3>질문 등록 템플릿 수정; question_form</h3>
+  <h4>csrf에 대한 처리를 해야함: form 내부에 input hidden으로 해서 csrf 처리 필요</h4>
+  <pre>
+&lt;form th:object="${questionForm}" method="post">
+    &lt;input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /></pre>
+  <h4>먼저 기존에 있던 form 태그의 th:action 속성을 삭제해야 한다. 단, th:action 속성을 삭제하면 CSRF값이 자동으로 생성되지 않아서 CSRF값을 설정하기 위해 hidden 형태로 input 요소를 이와 같이 작성하여 추가해야 한다.</h4>
+  <h4>CSRF값을 수동으로라도 추가해야 되는 이유는 스프링 시큐리티(Spring Security)를 사용할 때 CSRF 값이 반드시 필요하기 때문이다.</h4>
+  <h4>form 태그의 action 속성 없이 폼을 전송(submit)하면 action 속성이 없더라도 자동으로 현재 URL(여기서는 웹 브라우저에 표시되는 URL 주소)을 기준으로 전송되는 규칙이 있다. 즉, 질문 등록 시에 브라우저에 표시되는 URL은 /question/create이어서 action 속성이 지정되지 않더라도 POST로 폼 전송할 때 action 속성으로 /question/create가 자동 설정되고, 질문 수정 시에 브라우저에 표시되는 URL은 /question/modify/2와 같은 URL이기 때문에 POST로 폼 전송할 때 action 속성에 /question/modify/2와 같은 URL이 설정되는 것이다.</h4>
+  <h3>question service에 modify 추가</h3>
+  <h3>question controller에 post modify 추가</h3>
+  <p>POST 형식의 /question/modify/{id} 요청을 처리하기 위해 이와 같이 questionModify 메서드를 추가했다.
+    questionModify 메서드는 questionForm의 데이터를 검증하고 로그인한 사용자와 수정하려는 질문의 작성자가 동일한지도 검증한다. 검증이 통과되면 QuestionService에서 작성한 modify 메서드를 호출하여 질문 데이터를 수정한다. 그리고 수정이 완료되면 질문 상세 화면(/question/detail/(숫자))으로 리다이렉트한다.</p>
+</section>
+<section>
+  <h2>질문 삭제 기능 </h2>
+  <h3>질문 삭제 버튼 만들기 : question_detail.html</h3>
+  <p>로그인한 사용자가 자신이 작성한 질문을 삭제할 수 있도록 [삭제] 버튼을 클릭하면 자바스크립트 코드가 실행되도록
+    구현했다. [삭제] 버튼은 [수정] 버튼과는 달리 href 속성값을 javascript:void(0)로 설정하고
+    삭제를 실행할 URL을 얻기 위해 th:data-uri 속성을 추가한 뒤,
+    [삭제] 버튼을 클릭하는 이벤트를 확인하기 위해 class 속성에 delete 항목을 추가했다.</p>
+  <p>href에 삭제를 위한 URL을 직접 사용하지 않고 이러한 방식을 사용한 이유는 [삭제] 버튼을 클릭했을 때
+    ‘정말로 삭제하시겠습니까?’와 같은 메시지와 함께 별도의 확인 절차를 중간에 끼워 넣기 위해서이다.
+    만약 href에 삭제를 위한 URL을 직접 사용한다면 삭제를 확인하는 과정을 거치지 않고 질문이 삭제되어 버릴 것이다.</p>
+  <h4>data-uri 속성에 설정한 값은 클릭 이벤트 발생 시 별도의 자바스크립트 코드에서 this.dataset.uri를 사용하여 그 값을 얻어 실행할 수 있다.</h4>
+  <h4>javascript code</h4>
+  <pre>
+const delete_elements = document.getElementsByClassName("delete");
+Array.from(delete_elements).forEach(function(element) {
+    element.addEventListener('click', function() {
+        if(confirm("정말로 삭제하시겠습니까?")) {
+            location.href = this.dataset.uri;
+        };
+    });
+});  </pre>
+  <h3>question service 수정: delete 추가</h3>
+  <h3>question controller 수정: delete get 추가</h3>
+</section>
+<section>
+  <h2>답변 수정 기능</h2>
+  <h3>question_detail.html 수정하기</h3>
+  <pre>
+&lt;a th:href="@{|/answer/modify/${answer.id}|}"
+    sec:authorize="isAuthenticated()"
+    th:if="${answer.author != null and
+           #authentication.getPrincipal().getUsername() == answer.author.username}"
+    th:text="수정">&lt;/a>  </pre>
+  <h3>answer service 답변 조회 기능 추가</h3>
+  <pre>
+  public Answer getAnswer(Integer id) {
+      Optional&lt;Answer> answer = this.answerRepository.findById(id);
+      if (answer.isPresent()) {
+          return answer.get();
+      } else {
+          throw new DataNotFoundException("answer not found");
+      }
+  }
+
+  public void modify(Answer answer, String content) {
+      answer.setContent(content);
+      answer.setModifyDate(LocalDateTime.now());
+      this.answerRepository.save(answer);
+  }  </pre>
+  <h3>answer controller에 modify 추가</h3>
+  <pre>
+  @PreAuthorize("isAuthenticated()")
+  @GetMapping("/modify/{id}")
+  public String answerModify(AnswerForm answerForm, @PathVariable("id") Integer id, Principal principal) {
+      Answer answer = this.answerService.getAnswer(id);
+      if (!answer.getAuthor().getUsername().equals(principal.getName())) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
+      }
+      answerForm.setContent(answer.getContent());
+      return "answer_form";
+  }  </pre>
+  <p>이와 같이 answerModify 메서드를 추가했다. DB에서 답변 ID를 통해 조회한
+    답변 데이터의 내용(content)을 AnswerForm 객체에 대입하여 answer_form.html 템플릿에서
+    사용할 수 있도록 했다</p>
+  <h3>답변 수정 템플릿 생성하기 : answer_form.html</h3>
+  <h3>answer controller 에 post modify 추가 하기</h3>
+  <pre>
+  @PreAuthorize("isAuthenticated()")
+  @PostMapping("/modify/{id}")
+  public String answerModify(@Valid AnswerForm answerForm, BindingResult bindingResult,
+          @PathVariable("id") Integer id, Principal principal) {
+      if (bindingResult.hasErrors()) {
+          return "answer_form";
+      }
+      Answer answer = this.answerService.getAnswer(id);
+      if (!answer.getAuthor().getUsername().equals(principal.getName())) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정권한이 없습니다.");
+      }
+      this.answerService.modify(answer, answerForm.getContent());
+      return String.format("redirect:/question/detail/%s", answer.getQuestion().getId());
+  }  </pre>
+</section>
+<section>
+  <h2>답변 삭제</h2>
+  <h3>question_detail.html 에 삭제 버튼 추가</h3>
+  <h3>answer service에 delete method 추가</h3>
+  <h3>answer controller에 delete method(get) 추가</h3>
+  <h3>삭제 확인을 위한 JavaScript 추가</h3>
+</section>
+<section>
+  <h2>수정일 표시</h2>
+  <h3>question_detail.html에 수정일 추가 하기</h3>
+  <h4>th:text를 2개 넣으면 안되고, 필요시 tag를 만들어서 내용을 추가해야함</h4>
+</section>
+</main>
+</body>
+</html>

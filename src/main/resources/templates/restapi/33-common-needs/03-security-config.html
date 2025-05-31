@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>일반적으로 적용되는 Security 설정</h1>
+<pre>
+@Configuration
+public class SecurityConfiguration {
+
+   @Bean
+   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+      http
+        .authorizeHttpRequests(request -> request
+             .requestMatchers(HttpMethod.GET, "/**").permitAll() // 방법 1. method와 경로를 지정
+             .requestMatchers(new AntPathRequestMatcher("/board/**")).permitAll() // 2. 경로에 대해 정의
+             .requestMatchers(new AntPathRequestMatcher("/masool/**")).permitAll()
+             .requestMatchers(new AntPathRequestMatcher("/swagger-ui/**")).permitAll()
+             .requestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")).permitAll() // h2 db 경로 설정
+        )
+              .csrf(AbstractHttpConfigurer::disable) // csrf 설정
+              .cors(Customizer.withDefaults())  // cors 설정(WebMvcConfigurer 별도 설정 필요
+              .httpBasic(AbstractHttpConfigurer::disable) // 기본 login 설정
+              .headers(header -> header
+                      .frameOptions(Customizer.withDefaults()).disable()) // h2 db frame options 설정
+              .formLogin((formLogin) ->  formLogin
+                      .loginPage("/board/login")
+                      .defaultSuccessUrl("/board/question/question_list"))
+              .logout(logout -> logout
+                      .logoutRequestMatcher(new AntPathRequestMatcher("/board/logout"))
+                      .logoutSuccessUrl("/")
+                      .invalidateHttpSession(true))
+      ;
+     return http.build();
+   }
+
+   @Bean // 암로화를 위한 설정
+   PasswordEncoder passwordEncoder() {
+      return new BCryptPasswordEncoder();
+   }
+
+   @Bean // full stack으로 할 때 필요
+   AuthenticationManager authenticationManager(
+           AuthenticationConfiguration authenticationConfiguration) throws Exception{
+      return authenticationConfiguration.getAuthenticationManager();
+   }
+}
+</pre>
+</main>
+</body>
+</html>

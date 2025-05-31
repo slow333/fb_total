@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>Refactory</h1>
+  <h2>class에 @RequestMapping("/api/v1/artifacts")</h2>
+  <h2>application.yml에 변수 지정하기</h2>
+    <pre>
+      api:
+        endpoint:
+          base-url: /api/v1
+    </pre>
+    <h3>사용 @Value("${api.endpoint.base-url}") String baseUrl</h3>
+  <h2>exception 통합하기</h2>
+  <h3>ArtifactNotFoundException + WizardNotFoundException = ObjectNotFoundException</h3>
+  <h3>class 생성: extends RuntimeException</h3>
+  <h4>overload: String name, String id/ String name, int id/ </h4>
+  <h4>ExceptionHandlerAdvice 내용 수정</h4>
+</main>
+</body>
+</html>

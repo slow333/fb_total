@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>리포지터리로 데이터베이스 관리</h1>
+  <p>엔티티로 테이블을 구성하여 데이터를 관리할 준비를 마쳤다. 하지만 엔티티만으로는 데이블의 데이터를 CRUD 할수없다. 데이터를 관리하려면 데이터베이스와 연동하는 JPA 리포지터리가 반드시 필요</p>
+<section>
+  <h2>리포지터리 생성</h2>
+  <p>엔티티가 DB table을 생성하고, Repository는 이렇게 생성된 DB에 데이터를 CRUD할 수 있도록 도와 주는 인터페이스.(findAll, save 등을 제공)</p>
+  <h3>JpaRepository를 extends 한 interface를 생성</h3>
+<pre>public interface QuestionRepository extends JpaRepository&lt;Question, Integer>{}</pre>
+<pre>public interface AnswerRepository extends JpaRepository&lt;Answer, Integer>{}</pre>
+  <h4>이를 동작시키기 위해서는 컨트롤러, 서비스 가 필요하지만 JUnit으로 개별적으로 실행해 시험 가능</h4>
+</section>
+<section>
+  <h2>JUnit 설치</h2>
+  <h3>build.gradle</h3>
+<pre>testImplementation 'org.junit.jupiter:junit-jupiter'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'</pre>
+  <pre>
+@SpringBootTest
+class BoardApplicationTests {
+
+  @Autowired
+  private QuestionRepository questionRepository;
+  @Test
+  void testJpa () {
+    Question q1 = new Question();
+    q1.setSubject("sbb란 무었인가요?");
+    q1.setContent("spring board에 대해서 알고 싶어요?");
+    q1.setCreateDate(LocalDateTime.now());
+    this.questionRepository.save(q1);
+
+    Question q2 = new Question();
+    q2.setSubject("스프링부트 모델 질문입니다.");
+    q2.setContent("id는 자동으로 생성되나요?");
+    q2.setCreateDate(LocalDateTime.now());
+    this.questionRepository.save(q2);
+  }
+}  </pre>
+  <h4>@SpringBootTest 애너테이션은 SbbApplicationTests 클래스가 스프링 부트의 테스트 클래스임을 의미한다.</h4>
+    <h4>그리고 질문 엔티티의 데이터를 생성할 때 리포지터리(여기서는 QuestionRepository)가 필요하므로 @Autowired 애너테이션을 통해 스프링의 ‘의존성 주입(DI)’이라는 기능을 사용하여 QuestionRepository의 객체를 주입했다.</h4>
+  <h5>스프링의 의존성 주입(DI, Dependency Injection)이란 스프링이 객체를 대신 생성하여 주입하는 기법을 말한다.</h5>
+  <h5>앞서 작성한 테스트 코드를 보면 questionRepository 변수는 선언만 되어 있고 그 값이 비어 있다. 하지만 @Autowired 애너테이션을 해당 변수에 적용하면 스프링 부트가 questionRepository 객체를 자동으로 만들어 주입한다. 객체를 주입하는 방식에는 @Autowired 애너테이션을 사용하는 것 외에 Setter 메서드 또는 생성자를 사용하는 방식이 있다. 순환 참조 문제와 같은 이유로 개발 시 @Autowired보다는 생성자를 통한 객체 주입 방식을 권장한다. 하지만 테스트 코드의 경우 JUnit이 생성자를 통한 객체 주입을 지원하지 않으므로 테스트 코드 작성 시에만 @Autowired를 사용하고 실제 코드 작성 시에는 생성자를 통한 객체 주입 방식을 사용해 보자.</h5>
+  <h4 class="accent"> 로컬 서버가 이미 구동 중이라면 The file is locked: nio:/Users/pahkey/local.mv.db와 비슷한 오류가 발생할 것이다. H2 데이터베이스는 파일 기반의 데이터베이스인데, 이미 로컬 서버가 동일한 데이터베이스 파일(local.mv.db)을 점유하고 있어 이러한 오류가 발생하는 것이다. 따라서 테스트할 때는 먼저 로컬 서버를 중지해야 한다. </h4>
+  <h4>확인 할때는 테스트를 중지하고 다시 서버를 기동해야 db를 볼수 있다.</h4>
+</section>
+  <section>
+<pre>
+public interface CrudRepository&lt;T, ID> extends Repository&lt;T, ID> {
+  &lt;S extends T> S save(S entity);
+  &lt;S extends T> Iterable&lt;S> saveAll(Iterable&lt;S> entities);
+  Optional&lt;T> findById(ID id);
+  boolean existsById(ID id);
+  Iterable&lt;T> findAll();
+  Iterable&lt;T> findAllById(Iterable&lt;ID> ids);
+  long count();
+  void deleteById(ID id);
+  void delete(T entity);
+  void deleteAllById(Iterable&lt;? extends ID> ids);
+  void deleteAll(Iterable&lt;? extends T> entities);
+  void deleteAll();
+}</pre>
+  </section>
+</main>
+</body>
+</html>

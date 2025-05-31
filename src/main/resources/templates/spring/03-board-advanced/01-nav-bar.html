@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<!-- <nav th:replace="~{ui/utils/navbar :: navbarFragment}"></nav> -->
+<main>
+<h1>Navigation Bar</h1>
+  <h2>여기부터는 내용이 좀 다름..</h2>
+  <section>
+    <h2>navbar 생성 및 페이지에 추가하기</h2>
+    <pre>&lt;nav th:replace="~{ui/utils/navbar :: navbarFragment}"&gt;&lt;/nav&gt;     </pre>
+    <h3>외부의 파일을 불러와서 내용을 삽입함</h3>
+    <h3>JS로 해서 외부 파일을 불러오면 내부에서 sec:authorise="isAnonymous()" 가 동작하지 않음</h3>
+    <h4>아마도 thymeleaf와 js 간에 동작 순서, authectication 등에 문제가 있는 것 같음</h4>
+  </section>
+  <section>
+    <h2>전체 구조</h2>
+    <h3>layout.html, nav.html 생성</h3>
+    <h4>&lt;html layout:decorate="~{layout}"></h4>
+    <h4>&lt;div layout:fragment="content"&gt;</h4>
+    <pre>//layout.html
+&lt;!doctype html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;
+  &lt;link rel="stylesheet" type="text/css" th:href="@{/bootstrap.min.css}"&gt;
+  &lt;link rel="stylesheet" type="text/css" th:href="@{/style.css}"&gt;
+  &lt;title&gt; Hello, sbb!&lt;/title&gt;
+&lt;/head>
+&lt;body>
+ nav bar 파일 참조
+  &lt;nav th:replace="~{navbar :: navbarFragment}"&gt; &lt;/nav&gt;
+  &lt;th:block layout:fragment="content"&gt; &lt;/th:block&gt;
+  본문이 삽입됨
+  &lt;script th:src="@{/bootstrap.min.js}">&lt;/script&gt;
+&lt;/body>
+&lt;/html>    </pre>
+    <pre>//적용 파일
+&lt;html layout:decorate="~{layout}"&gt;
+&lt;div layout:fragment="content" class="container my-3"&gt;
+      본문 내용 들어 가는 곳
+&lt;/div>   </pre>
+  </section>
+</main>
+</body>
+</html>

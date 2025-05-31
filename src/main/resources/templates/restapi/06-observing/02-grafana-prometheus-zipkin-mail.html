@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Grafana Prometheus Zipkin MailPit</h1>
+  <h2>기본 설정</h2>
+  <h3>pom.xml; runtime: io.micrometer: micrometer-registry-prometheus</h3>
+  <h3>yml; exposure add prometheus</h3>
+  <h3>security; actuator 관련에 prometheus 추가</h3>
+
+  <h2>설치하기 : project root,  docker-compose.yml</h2>
+  <pre>
+services:
+  prometheus:
+    image: prom/prometheus
+    volumes: # 폴더와 파일 생성해야함
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+  grafana:
+    image: grafana/grafana-enterprise
+    volumes:
+      - ./docker/grafana:/var/lib/grafana
+    env_file: # 폴더와 파일 생성 필요
+      - ./docker/grafana/grafana-config.env
+    ports:
+      - 3000:3000
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - 8025:8025
+      - 1025:1025
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+  </pre>
+  <h3>project root에 docker/prometheus/prometheus.yml 생성</h3>
+  <pre>
+scrape_configs:
+  - job_name: "hogwarts-artifacts-online"
+    metrics_path: "/actuator/prometheus"
+    scrape_interval: 3s # how often to scrape
+    static_configs:
+     # This is for demo purpose.
+    # During  production, change this to the production host address.
+      - targets: ["host.docker.internal:80"] # windows
+      - targets: ["docker.for.mac.localhost:80"] # mac
+  </pre>
+  <h3>project root에 docker/grafana/grafana-config.env 생성</h3>
+  <pre>
+GF_SMTP_ENABLED=true
+GF_SMTP_HOST=mailpit:1025 # mailpit에서 smtp로 1025포트를 listen함
+GF_SMTP_FROM_ADDRESS=myaddress@bingyang.dev
+GF_SMTP_FROM_NAME=Grafana
+  </pre>
+  <h3>실행; docker compose up</h3>
+  <h4>접속 경로 : localhsot:9090, :3000, 9025, 9411</h4>
+
+  <h2>실행</h2>
+  <h3>prometheus ; localhost:9090 </h3>
+  <h4>search: up == 1 , execute</h4>
+  <h4>기타 세부 정보 확인(app 실행 필요)</h4>
+
+  <h3>grafana ; localhost:3000</h3>
+  <h4>admin, admin ; password change</h4>
+  <h4>data source ; http://prometheus:9090 , 기타 등등 설정</h4>
+  <h4>dashboard 생성(기존 템플릿 가져와서 사용하기)</h4>
+  <ol>
+    <li>dashboard로 이동해서 create dashboard</li>
+    <li>grafana.com/grafana/dashboards 검색해서 id를 가져와서</li>
+    <li>import a dashboard에서 import에서 붙여 넣고</li>
+    <li>datasource 선택; prometheus</li>
+    <li>import </li>
+  </ol>
+  <h4>alerting </h4>
+  <h5>1. 이름, 2. 경계값 지정, 3. 알람 정책, 4. 정보입력, 5. 알람 레벨, 저장</h5>
+  <pre>
+  1. 이름 지정
+  2. 알림 할 값 지정
+    A 항목 정의; 조건값 지정
+    metrics; up, label filters; instance, docker.for.mac.localhost:80
+    and run queries(upper button)
+    B 항목에 추가
+    condition, threshold 등 선택
+    when; last() of A ; willReturn 1 1 1 1 1 1
+    is below 선택 1 또는 다른 조건 선택
+  3. evaluation behavior 지정
+    폴더 이름 지정
+    evaluation group 지정; prod_serviceHealth_every10s
+    모든 evaluation group은 인터벌을 갖고 있음
+    pending period; 이 기간 이후에 알람을 보냄, 이 시간 이내에 없어지면 안보냄(0이면 없음)
+  4. annotations
+    정보 입력
+  5. configure notifications
+    alert level 지정
+    severity; critical
+  </pre>
+  <h5>notification policies</h5>
+  <p>contact points ; 수정, 추가</p>
+  <p>slack 등 많은 전달 방법이 있음</p>
+
+  <h3>mailpit; localhost:8025</h3>
+  <h4>서비스 상태가 변경되면 prometheus에서 감지하고 grafana에서 알림 메일을 보냄</h4>
+
+  <h3>Zipkin: localhost:9411</h3>
+  <h4>application의 성능, latency 등 한명의 사용자에 대한 trace를 보여줌</h4>
+  <h4>어디서 와서 어디로 가는 전체 인스턴스/bean에 대한 경로 및 딜레이를 보여줌</h4>
+  <h4>pom.xml; io.micrometer: micrometer-tracing-bridge-brave</h4>
+  <h4>pom.xml; io.zipkin.reporter2: zipkin-reporter-brave</h4>
+  <h4>yml; management:tracing:sampling:probability: 0.1 #default 10%</h4>
+  <h4>yml; management:tracing:sampling:probability: 1 # demo purpose</h4>
+
+
+  <h2>이모든 걸 위해서는 spring-boot-starter-aop 필요하나 기본적으로 설정되어 있음</h2>
+
+  <h2>서비스에 metrics observe 적용하기</h2>
+  <h3>service의 원하는 method에 @Observed(name="artifact", contextualName = "findByIdService", 다른 설정 등)</h3>
+  <h4>merics에 artifact 항목으로 보임(/metrics/artifact)</h4>
+  <h4>zipkin에서 세부정보를 보면 findByIdService 항목이 새로 생김</h4>
+</main>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

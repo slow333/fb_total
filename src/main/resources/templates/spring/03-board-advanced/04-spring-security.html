@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>spring security</h1>
+  <p> SBB도 스프링 시큐리티를 사용하여 회원 가입과 로그인 기능을 만들 것이다. SBB에 회원 가입과 로그인 기능을 추가하기 전에 먼저 스프링 시큐리티를 간단하게 알아보고 설치와 설정도 진행</p>
+  <p>스프링 시큐리티는 스프링 기반 웹 애플리케이션의 인증과 권한을 담당하는 스프링의 하위 프레임워크이다. 여기서 인증(authenticate)은 로그인과 같은 사용자의 신원을 확인하는 프로세스를, 권한(authorize)은 인증된 사용자가 어떤 일을 할 수 있는지(어떤 접근 권한이 있는지) 관리하는 것을 의미한다.</p>
+<section>
+  <h2>spring security install</h2>
+  <h3>build.gradle</h3>
+<pre>implementation 'org.springframework.boot:spring-boot-starter-security'
+  implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6' </pre>
+  <h4>spring security를 설정하면 기본적으로 login 화면이 보이면서 login을 요구</h4>
+  <h4>기본으로 설정된 것으로 이를 회피하기 위해서는 SecurityFilterChain 설정 필요</h4>
+  <h2>spring security setting</h2>
+  <pre>
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
+                .requestMatchers(new AntPathRequestMatcher("/**")).permitAll())
+        ;
+        return http.build();
+    }
+}  </pre>
+  <h3>h2 콘솔 관련 애러 처리: forbidden error, 403</h3>
+  <h4>csrf 관련 filterChain 구성 필요</h4>
+  <h4>스프링 시큐리티는 페이지에 CSRF 토큰을 발행하여 이 값이 다시 서버로 정확하게 들어오는지를 확인하는 과정을 거친다. 만약 CSRF 토큰이 없거나 해커가 임의의 CSRF 토큰을 강제로 만들어 전송한다면 스프링 시큐리티에 의해 차단될 것이다. 정리하자면, H2 콘솔은 스프링 프레임워크가 아니므로 CSRF 토큰을 발행하는 기능이 없어 이와 같은 403 오류가 발생한 것이다.</h4>
+  <h4>H2 콘솔은 스프링과 상관없는 일반 애플리케이션이다.</h4>
+  <h4> 스프링 시큐리티가 CSRF 처리 시 H2 콘솔은 예외로 처리할 수 있도록 다음과 같이 설정 파일을 수정</h4>
+  <pre>
+http.csrf((csrf) -> csrf
+    .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**")))  </pre>
+  <h3>X-Frame-Options</h3>
+  <p>오류가 발생하는 원인은 H2 콘솔의 화면이 프레임(frame) 구조로 작성되었기 때문이다. 즉, H2 콘솔 UI(user interface) 레이아웃이 이 화면처럼 작업 영역이 나눠져 있음을 의미한다. 스프링 시큐리티는 웹 사이트의 콘텐츠가 다른 사이트에 포함되지 않도록 하기 위해 X-Frame-Options 헤더의 기본값을 DENY로 사용하는데, 프레임 구조의 웹 사이트는 이 헤더의 값이 DENY인 경우 이와 같이 오류가 발생한다.</p>
+  <pre>
+http.headers((headers) -> headers
+  .addHeaderWriter(new XFrameOptionsHeaderWriter(
+      XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)))  </pre>
+</section>
+</main>
+</body>
+</html>

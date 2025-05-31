@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Open AI ; ChatGPT 적용하기</h1>
+  <img src="/images/restapi_openAi-sequence_diagram.png" alt="open ai sequence digram" width="90%">
+  <h3>url ; https://api.openai.com/v1/chat/completions</h3>
+  <h3>curl api.openai.com/v1/chat/completions -H "Content-Type: application/json"
+      -H "Authorization: Bearer $OPENAI_API_KEY" -d '{post 하는 데이터}'</h3>
+  <h2>적용 순서</h2>
+  <ol>
+    <li>rest open ai의 데이터(request, response)를 분석해서 dto class를 만듦
+    <pre>
+  request(has model) mapped to messages(role, content) : 1 to 1..N
+  response mapped to choice : 1 to 1..*
+  choice mapped to message: 1 to 1
+  role: "system", "content": "질문하는 내용"
+  role: "user", "content": "넣어 주는 데이터(json to string, util 사용)"    </pre>
+    </li>
+    <li>ArtifactController</li>
+    <li>ArtifactService</li>
+    <li>OpenAiChatClient(using RestClient)</li>
+  </ol>
+
+  <h2>1. Dto 만들기 : client/ai/chat/</h2>
+  <pre>
+  // ChatRequest
+  public record ChatRequest(String model, List[Message] messages){}
+  // Message
+  public record Message(String role, String content){}
+  // ChatResponse
+  public record ChatResponse(List[Choice] choices){}
+  // Choice
+  public record Choice(Message message, int index){}
+  </pre>
+  <h2>Controller, Service frame 만들기</h2>
+  <pre>
+  @GetMapping("/summary")
+  public Result summarizeArtifact() { return null;  }
+
+  private final ChatClient chatClient;
+  public String summarize(List[ArtifactDto] artifactDtos){ return null; }
+  </pre>
+  <h2>2. RestClient</h2>
+  <h3>2.1 Interface </h3>
+  <pre>
+  public interface ChatClient { ChatResponse generate(ChatRequest chatRequest); }
+  </pre>
+  <h3>2.2 class</h3>
+  <pre>
+  @Component
+  public class OpenAiChatClient implements ChatClient {
+
+    // (1) builder pattern 먼저 만들어야 함.
+    private final RestClient restClient;
+
+    public OpenAiChatClient(
+        @Value("${ai.openai.endpoint}") String endpoint, // application-dev.yml에 추가
+        @Value("${ai.openai.api-key}") String apiKey,    // application-dev.yml에 추가
+        RestClient.Builder builder){
+      this.restClient = builder
+          .baseUrl(endpoint)
+          .defaultHeader("Authorization", "Bearer " + apiKey)
+          .build();
+    }
+    // (2) 위에 것 설정 끝 나면
+    @Bean
+    ChatResponse generate(ChatRequest chatRequest){
+      return this.restClient
+        .post()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(charRequest)
+        .retrieve()
+        .body(ChatResponse.class);
+    }
+  }
+  </pre>
+  <pre> //(1) RestClient Builder pattern.
+  @Component
+  public class RestClientBuilderConfig{
+    @Bean
+    public RestClient.Builder restClientBuilder() {
+      return RestClient.builder()
+          .requestFactory(new JdkClientHttpRequestFactory());
+    }
+  }
+  ai:openai:
+    endpoint: ${AI_OPENAI_ENDPOINT:https://.../}
+    api-key: ${AI_OPENAI_API_KEY:MY_KEY} // RUN / EDIT/ Configuration variables; OPENAI_APIKEY=my-key
+  </pre>
+  <h2>3. OpenAiChatClient Test: TDD</h2>
+  <pre> // 시험 방법이 전과 다름
+  @RestClientTest(OpenAiChatClient.class) // 외부 api를 시험하기 위해 필요.
+  class OpenAiChatClientTest {
+
+    @Autowired
+    private OpenAiChatClient openAiChatClient;
+
+    // MockRestServiceServer를 만들어서 open ai를 가상으로 만듦.
+    @Autowired
+    private MockRestServiceServer mockServer;
+
+    private ObjectMapper objectMapper;
+
+    String url;
+
+    ChatRequest chatRequest
+    @BeforeEach
+    void setup() {
+      this.url = "https://api.openai.com/v1/chat/completion";
+      this.chatRequest = new ChatRequest("gpt-4", List.of(
+          new Message("system", "질문할 내용"),
+          new Message("user", "질문에 답하기 위한 데이터, json")
+        ));
+    }
+
+    @Test
+    void testThatGenerateSuccess() {
+      // Given:
+      ChatResponse chatResponse = new ChatResponse(List.of(
+        new Choice(0, new Message("assistant", "ai에 의한 답변"))
+      ));
+      this.mockServer.expect(requestTo(this.url)) // ai에 입력할 값
+        .andExpect(method(HttpMethod.POST))
+        .andExpect(header("Authorization", startWith("Bearer "))
+        .andExpect(content().json(objectMapper.writeValueAsString(chatRequest)))
+        .andRespond(withSuccess(objectMapper.writeValueAsString(chatResponse),
+          MediaType.APPLICATION_JSON))
+      // When:
+      ChatResponse generateChatResponse = openAiChatClient.generate(chatRequest);
+      // Then:
+      mockServer.verify();
+      assertThat(generateChatResponse.choices.get(0).message().content())
+        .isEqualTo("ai에 의한 답변")
+    }
+
+    @Test
+    void testThatGenerateUnauthorizeRequest() {
+      // Given:
+      ChatResponse chatResponse = new ChatResponse(List.of(
+        new Choice(0, new Message("assistant", "ai에 의한 답변"))
+      ));
+      this.mockServer.expect(requestTo(this.url)) // ai에 입력할 값
+        .andExpect(method(HttpMethod.POST))
+        // .andExpect(withUnauthorizedRequest())
+        .andExpect(withServiceUnavailable()); // 전체 error를 처리
+      // When:
+      Throwable thrown = catchThrowable(() - {
+        ChatResponse generateChatResponse = openAiChatClient.generate(chatRequest);
+      });
+      // Then:
+      mockServer.verify();
+      assertThat(thrown)
+        .isInstanceOf(HttpClientErrorException.Unauthorized.class) // error type
+    }
+  }
+  </pre>
+
+  <h2>4. ArtifactService Test</h2>
+  <pre>
+  @Test
+  void testSummarizeSuccess() {
+    // dto 생성
+    WizardDto wizardDto = new WizardDto(1, "wizard name", 2);
+    List[ArtifactDto] artifactDtos = List.of(
+      new ArtifactDto(id, name, description, wizardDto),
+      new ArtifactDto(id, name, description, wizardDto)
+    );
+  }
+
+  ObjectMapper objectMapper = new ObjectMapper();
+  String jsonArray = objectMapper.writeValueAsString(artifactDtos);
+  // message 생성(3)
+  List[Message] messages= List.of(
+    new Message("system", "질문 내용"),
+    new Message("user", jsonArray)
+  );
+  // request 생성(2)
+  ChatRequest chatRequest = new ChatRequest("gpt-4", message);
+  // response 생성(4)
+  ChatResponse chatResponse = new ChatResponse(List.of(
+    new Choice(indexValue, new Message("assistant", "ai 답변"))
+  ));
+  given(chatClient.generate(chatRequest)).willReturn(chatResponse); // (1)
+  // When:
+  String summary = artifactService.summarize(artifactDtos);
+  // Then:
+  assertThat(summary).isEqualTo("ai 답변");
+  verify(chatClient, times(1)).generate(chatRequest);
+  </pre>
+  <h2>5. ArtifactService summarize</h2>
+  <pre>
+  public String summarize(List[ArtifactDto] artifactDtos){
+    ObjectMapper objectMapper = new ObjectMapper();
+    String jsonArray = objectMapper.writeValueAsString(artifactDtos);
+    // ai에 질문할 내용.
+    List[Message] messages= List.of(
+      new Message("system", "질문 내용"),
+      new Message("user", jsonArray)
+    );
+    ChatRequest chatRequest = new ChatRequest("gpt-4", message);
+    ChatResponse chatResponse = chatClient.generate(chatRequest);
+
+    return chatResponse.choices().get(0).message().content();
+  }
+  </pre>
+  <h2>6. ArtifactController Test</h2>
+  <pre>
+  @Test
+  void testSummarizeArtifactsSuccess() {
+    given(artifact.service.summarize(Mockito.anyList())).willReturn("ai 답변");
+    // 웬, 덴
+    this.mockMvc.perform(get("/artifacts/summary").accept(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.flag").value(true))
+      .andExpect(jsonPath("$.data").value("ai 답변"))
+  }
+  </pre>
+  <h2>7. ArtifactController summarizeArtifacts()</h2>
+  <pre>
+  @GetMapping("summary")
+  public Result summarizeArtifacts(){
+    List[Artifact] fondArtifacts = artifactService.findAll();
+    List[ArtifactDto] dtos = fondArtifacts.stream()
+      .map(artifactToArtifactDtoConverter::converter)
+      .collect(Collectors.toList());
+    String summary = artifactService.summarize(dtos);
+
+    return new Result(true, StatusCode.SUCCESS, "Summarize Success", summary);
+  }
+  </pre>
+  <h2>8. openai exception 처리 : ExceptionHandlerAdvice</h2>
+  <pre>
+  @ExceptionHandler({HttpClientErrorException.class, HttpServerErrorException.class})
+  ResponseEntity[Result] handleRestClientException(HttpStatusException ex ){
+
+    // Error 메세지 정리해서 보기
+    String exceptionMessage = ex.getMessage();
+    exceptionMessage =exceptionMessage.replace("[EOL]", "\n");
+    String jsonPart = exceptionMessage.substring(exceptionMessage.indexOf("{"),
+        exceptionMessage.lastIndexOf("}"));
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode rootNode = mapper.readTree(jsonPart);
+    String formattedExceptionMessage = rootNode.path("error").path("message").asText();
+    // 여기 까지가 정리된 것임
+
+    return new ResponseEntity[](
+      new Result(false,
+          ex.getStatusCode().value(),
+          "A rest client error occurs.",
+          formattedExceptionMessage),
+      ex.getStatusCode()
+    );
+  }
+  </pre>
+</main>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

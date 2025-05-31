@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head></head>
+<body>
+<div th:fragment="formErrorsFragment" th:if="${#fields.hasAnyErrors()}">
+  <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+</div>
+</body>
+</html>

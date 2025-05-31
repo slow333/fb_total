@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>login and logout</h1>
+  <h3>sec:authorize="isAuthenticated()", "isAnonymous()"는 js import에서 동작안함...</h3>
+<section>
+  <h2>1. filterChain: login page 연결하기</h2>
+<pre>http -> http
+  .formLogin(formLogin ->  formLogin
+    .loginPage("/sbb-UI/user/login")
+    .defaultSuccessUrl("/sbb-UI/user/question_list")) </pre>
+  <h3>여기서 추가한 .formLogin 메서드는 스프링 시큐리티의 로그인 설정을 담당하는 부분으로,
+    설정 내용은 로그인 페이지의 URL은 /sbb-UI/user/login이고
+    로그인 성공 시에 이동할 페이지는 루트 URL(/sbb-UI/user/question_list)임을 의미한다.</h3>
+
+  <h2>2. controller 설정 : /sbb-UI/user/login 페이지 설정</h2>
+  <pre>
+  @GetMapping("/login")
+  public String login() { return "sbb-UI/user/login_form"; }  </pre>
+
+  <h2>3. login templete 생성(login_form.html)</h2>
+  <h3>login template에 login error(사용자가 없는 경우) 설정 </h3>
+  <h4>spring security는 param으로 error전달(/login?error)</h4>
+  <h4>이 정보를 login_form에서 매개변수로 활용</h4>
+  <pre>
+&lt;div th:if="${param.error}">
+    &lt;div style="color:red; font-size:18px;">사용자 ID 또는 비밀번호를 확인해 주세요&lt;/div>
+&lt;/div>
+  </pre>
+</section>
+<section>
+  <h2>4. spring security login 설정</h2>
+  <h3>스프링 시큐리티에 로그인 설정이 없어 로그인되지 않음</h3>
+  <h3>스프링 시큐리티를 통해 로그인을 수행하는 방법에는 여러 가지가 있음</h3>
+  <h4>간단한 방법으로 SecurityConfig.java와 같은 시큐리티 설정 파일에
+    사용자 ID와 비밀번호를 직접 등록하여 인증을 처리하는 메모리 방식이 있다.</h4>
+  <h4>이미 회원 가입을 통해 회원 정보를 DB에 저장했으므로 DB에서 회원 정보를 조회하여 로그인하는 방법을 사용</h4>
+  <h4>DB에서 사용자를 조회하는 서비스(UserSecurityService.java)를 만들고,
+    그 서비스를 스프링 시큐리티에 등록. 하지만 UserSecurityService 서비스를 만들기 전에 UserRepository를 수정하고
+    UserRole 클래스를 생성하는 등 준비를 해야 한다. 서비스를 활용하기 위한 밑 작업을 진행</h4>
+
+  <h2>4-1. User repository 수정</h2>
+  <h3>username으로 객체를 찾는 repository 등록</h3>
+  <pre>Optional&lt;UserInfo> findByusername(String username);</pre>
+
+  <h2>4-2. UserRole 파일 생성</h2>
+  <h3>spring security에서 권한 관리를 위해 enum class 생성</h3>
+  <pre>
+@Getter //UserRole은 값을 변경할 필요가 없으므로 @Setter 없이 @Getter만 사용
+public enum UserRole {
+  ADMIN("ROLE_ADMIN"),
+  USER("ROLE_USER");
+  UserRole(String value) { this.value = value; }
+  private String value;
+}  </pre>
+  <h3>ADMIN, USER 별로 권한 설정을 설정 가능(여기서는 안함)</h3>
+
+  <h2>4-3. UserSecurityService 서비스 생성</h2>
+  <h3>filterChain에서 설정한 login page에서 넘어온 정보를 가지고 권한을 포함한 User 객체를 생성</h3>
+  <h3>권한은 enum class에서 설정한 정보를 활용("ROLE_ADMIN","ROLE_USER")</h3>
+  <pre>//UserSecurityService.java
+@Service
+@RequiredArgsConstructor
+public class UserSecurityService implements UserDetailsService {
+  private final UserRepository userRepository;
+
+  @Override
+  public UserDetails loadUserByUsername(String username)
+    throws UsernameNotFoundException {
+
+    Optional&lt;UserInfor> _userInfo = this.userRepository.findByusername(username);
+    if (_userInfo.isEmpty()) {
+      throw new UsernameNotFoundException("사용자가 없습니다.");
+    }
+    UserInfor userInfor = _userInfo.get();
+
+    List&lt;GrantedAuthority> authorities = new ArrayList&lt;>();
+    if ("admin".equals(username)) {
+      authorities.add(new SimpleGrantedAuthority(UserRole.ADMIN.getValue()));
+    } else {
+      authorities.add(new SimpleGrantedAuthority(UserRole.USER.getValue()));
+    }
+    return new User(userInfor.getUsername(), userInfor.getPassword(), authorities);
+  }
+}  </pre>
+  <h4>loadUserByUsername 메서드는 사용자명으로 UserInfo 객체를 조회</h4>
+  <h4>사용자명에 해당하는 데이터가 없을 경우에는 UsernameNotFoundException을 발생</h4>
+  <h4>사용자명이 ‘admin’인 경우에는 ADMIN 권한(ROLE_ADMIN)을 부여하고
+    그 이외의 경우에는 USER 권한(ROLE_USER)을 부여</h4>
+  <h4>마지막으로 User 객체를 생성해 반환:이 객체는 스프링 시큐리티에서 사용</h4>
+  <h4>User 생성자에는 사용자명, 비밀번호, 권한 리스트가 전달</h4>
+  <h4>스프링 시큐리티는 리턴된 User 객체의 비밀번호가 사용자로부터 입력받은 비밀번호와 일치하는지를 검사</h4>
+
+  <h2>4-4. spring security 설정 수정</h2>
+  <h3>AuthenticationManager bean을 생성</h3>
+  <pre>
+public class SecurityConfig {
+  (... 생략 ...)
+  @Bean
+  AuthenticationManager authenticationManager
+    (AuthenticationConfiguration authenticationConfiguration)
+    throws Exception {
+      return authenticationConfiguration.getAuthenticationManager();
+  }  </pre>
+  <h3>AuthenticationManager는 스프링 시큐리티의 인증을 처리한다. AuthenticationManager는
+    사용자 인증 시 UserSecurityService와 PasswordEncoder를 내부적으로 사용하여
+    인증과 권한 부여 프로세스를 처리</h3>
+</section>
+<section>
+  <h2>5. login 화면 연결(nav bar)</h2>
+  <h3>이제 사용자가 없으면 없다고 애러를 출력함, 성공하면 defaultSuccessUrl로 감</h3>
+
+  <h2>6. login, logout 표시 토글하기..이 건 안됨</h2>
+  <pre>//nav.html
+  &lt;li class="nav login">
+    &lt;a sec:authorize="isAnonymous()" th:href="@{/sbb-UI/user/login}">login&lt;/a>
+    &lt;a sec:authorize="isAuthenticated()" th:href="@{/sbb-UI/user/logout}">logout&lt;/a>
+    &lt;/li>  </pre>
+  <h4>하나만 나와야 하는데 둘다 표시됨</h4>
+</section>
+<section>
+  <h2>7. logout 구현 하기</h2>
+  <h3>nav.html에서 우리는 ‘로그아웃’ 링크를 /sbb-UI/user/logout으로 설정했다.
+    하지만 아직 로그아웃 기능은 구현하지 않은 상태이다.
+    앞선 실습에서 SBB에 로그인을 했다면 내비게이션 바에 ‘로그아웃’ 링크가 나타난 것을 확인할 수 있다.
+    그런데 ‘로그아웃’ 링크를 누르면 404 오류 페이지가 표시된다.</h3>
+  <h3>로그아웃 설정을 추가하기 위해 다음과 같이 SecurityConfig 파일을 수정</h3>
+  <pre>
+.logout((logout) -> logout
+    .logoutRequestMatcher(new AntPathRequestMatcher("/sbb-UI/user/logout"))
+    .logoutSuccessUrl("/")
+    .invalidateHttpSession(true))  </pre>
+</section>
+</main>
+</body>
+</html>

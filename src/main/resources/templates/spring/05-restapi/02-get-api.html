@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Get api</h1>
+  <section>
+    <pre>
+@Getter
+@Setter
+public class PersonDTO {
+  String name;
+  Integer age;
+
+  @Override
+  public String toString() {
+    return "PersonDTO{"
+      + "name='" + name + '\'' + ", age=" + age +'}';
+  }
+}    </pre>
+    <pre>
+@GetMapping("/request")
+  public String getReqParam(
+      @RequestParam(name = "name", defaultValue = "rest3.4") String name,
+      @RequestParam(name = "age", defaultValue = "55") Integer age) {
+    return "name : " + name + ", age : " + age;
+  }
+
+  @GetMapping("/request2")
+  public String getReqParam2(@RequestParam Map&lt;String, Object> map) {
+    StringBuilder sb = new StringBuilder();
+    map.forEach((key, value) -> sb.append(key + ":" + value));
+    return sb.toString();
+  }
+
+  @GetMapping("/request3")
+  public String getReqParam3(PersonDTO personDTO) {
+    return personDTO.toString();
+  }
+
+  @GetMapping("/variable/{variable}")
+  public String getPathVariable(@PathVariable("variable") String variable) {
+    return variable;
+  }
+    </pre>
+    <h3>주의 사항</h3>
+    <h4>DTO로 param을 받을 때는 @RequestBody 필요없음</h4>
+    <h4>@RequestParam("받는 파라미터")를 명시해 주어야 함</h4>
+    <h4>@PathVariable("받는이름") String 변경하고 싶은 이름</h4>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>  </section>
+</main>
+<script>
+  let url = "http://localhost:8080/api/v1/test/request?name=param request&age=99";
+  let url1 = "http://localhost:8080/api/v1/test/request2?name=param request2&age=19";
+  let url2 = "http://localhost:8080/api/v1/test/request3?name=param request3&age=9";
+  let url3 = "http://localhost:8080/api/v1/test/variable/pathvariableTest";
+  async function fetchTest(url) {
+    let hello = await fetch(url);
+    let response = await hello.text();
+    console.log(response);
+    testResult.innerHTML += response+"<br>";
+  }
+  fetchTest(url);
+  fetchTest(url1);
+  fetchTest(url2);
+  fetchTest(url3);
+
+</script>
+</body>
+</html>

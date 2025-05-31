@@ -1,0 +1,45 @@
+Result;
+{
+  "flag": true,
+  "code": 200,
+  "message": "Summarize Success",
+  "data": "Summary result from OpenApi ChatGPT version 4."
+}
+
+request;
+{
+    model: "gpt-4",
+    message: [
+      {
+        "role": "system",
+        "content": "질문할 내용"
+      },
+      {
+         "role": "user",
+         "content": "질문용 데이터"
+      }
+    ]
+}
+
+response;
+{
+  "id": "acsdedgsf23afFSei2",
+  "object": "chat.completion",
+  "created": 1703244563,
+  "model": "gpt-4-0613",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "답변 내용"
+      },
+      "logprobs": null,
+      "finish_reson": "stop"
+    }
+  ],
+  "usage": {
+   ....
+  },
+  "system_fingerprint": null
+}

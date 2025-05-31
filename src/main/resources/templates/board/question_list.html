@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+  <script defer type="text/javascript" th:src="@{/js/menu/loadNav_noNav.js}"></script>
+</head>
+<body>
+<nav th:replace="~{board/utils/navbar :: navbarFragment}"></nav>
+<main class="nosub" style="height: 90vh;">
+<h1>Question list</h1>
+  <section>
+  <h2>질문 내역</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>NO</th>
+        <th>제목</th>
+        <th>글쓴이</th>
+        <th>작성일시</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="question, loop : ${pagingList}">
+        <td style="text-align: center"
+           th:text="${pagingList.getTotalElements - (pagingList.number * pagingList.size) - loop.index}"></td>
+        <td><a th:href="@{|/board/question/question_detail/${question.id}|}"
+             th:text="${question.subject}"></a>
+          <span class="small answer"
+                th:if="${#lists.size(question.answerList) > 0}"
+                th:text="${#lists.size(question.answerList)}">
+          </span>
+        </td>
+        <th><span th:if="${question.author != null}" th:text="${question.author.username}"></span></th>
+        <td style="width:220px; text-align:center"
+            th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+      </tr>
+      </tbody>
+    </table>
+    <!-- 페이징처리 시작 -->
+    <div th:if="${!pagingList.isEmpty()}">
+      <ul class="pagination">
+        <li><a th:href="@{|?page=0|}">처음</a></li>
+        <li th:classappend="${!pagingList.hasPrevious} ? 'disabled'">
+          <a th:href="@{|?page=${pagingList.number-1}|}">Prev</a>
+        </li>
+        <li th:each="page: ${#numbers.sequence(0, pagingList.totalPages-1)}"
+            th:if="${page >= pagingList.number-5 and page <= pagingList.number+5}">
+          <a th:text="${page}" th:href="@{|?page=${page}|}"
+             th:classappend="${page == pagingList.number} ? 'active'"></a>
+
+        </li>
+        <li th:classappend="${!pagingList.hasNext} ? 'disabled'">
+          <a th:href="@{|?page=${pagingList.number+1}|}">Next</a>
+        </li>
+        <li><a th:href="@{|?page=${pagingList.totalPages -1}|}">끝</a></li>
+      </ul>
+    </div>
+    <!-- 페이징처리 끝 -->
+    <a class="edit-delete" th:href="@{|/board/question/create|}">질문 추가</a>
+  </section>
+</main>
+</body>
+</html>

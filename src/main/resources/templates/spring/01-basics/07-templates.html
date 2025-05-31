@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>thymeleaf templates setting</h1>
+  <h2>url : http://localhost:8080/question/list</h2>
+  <section>
+    <h2>질문목록 URL mapping</h2>
+<pre>@Controller
+public class QuestionController {
+
+  @GetMapping("/question/list")
+  @ResponseBody
+  public String list() {
+    return "Question 목록 입니다.acs";
+  }
+}</pre>
+    <h3>이런 방식은 사용하지 않고 template 방식을 사용</h3>
+    <h3>템플릿 엔진 : Thymeleaf, Mustache, Groovy, Freemarker, Velocity 등</h3>
+    <h3>Thymeleaf 설치: build.gradle</h3>
+<pre>implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'</pre>
+  </section>
+  <section>
+    <h2>templates 사용하기</h2>
+    <h3>resource.templates ; question_list.html 생성</h3>
+    <h3>controller에 @ResponseBody를 삭제하고 html 파일 이름으로 변경한다.</h3>
+    <h3>/question/list 하면 페이지가 보임.</h3>
+  </section>
+</main>
+</body>
+</html>

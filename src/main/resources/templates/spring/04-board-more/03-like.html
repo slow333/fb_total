@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<!-- <nav th:replace="~{ui/utils/navbar :: navbarFragment}"></nav> -->
+<main>
+<h1>좋아요 추가하기</h1>
+<section>
+  <h2>entity에 속성 추가</h2>
+  <pre>@ManyToMany
+  Set&lt;UserInfor> like</pre>
+<p>author 속성을 추가할 때와 달리 QUESTION_VOTER, ANSWER_VOTER라는 테이블이 생성된 것을 확인할 수 있다.
+  이렇게 @ManyToMany 애너테이션을 사용해 다대다 관계로 속성을 생성하면 새로운 테이블을 만들어
+  관련 데이터를 관리한다. 여기서 생성된 테이블의 인덱스 항목을 펼쳐 보면 서로 연관된 엔티티의
+  고유 번호(즉, ID)가 기본키로 설정되어 다대다 관계임을 알 수 있다.</p>
+</section>
+<section>
+  <h2>질문 추천 기능 생성</h2>
+  <h3>question_detail.html에 question like 버튼 추가</h3>
+  <pre>th:data-url="@{|/ui/question/like/${question.id}|}" </pre>
+  <p>[추천] 버튼을 [수정] 버튼 왼쪽에 추가하기 위한 코드를 작성했다. lists.size 메서드에 question.like를
+    사용하여 추천 수도 함께 보이도록 했다. [추천] 버튼을 클릭하면 href의 속성이 javascript:void(0)으로
+    되어 있어서 아무런 동작도 하지 않는다. 하지만 class 속성에 recommend를 적용해 자바스크립트로 data-uri에
+    정의된 URL이 호출되도록 할 것이다. 따라서 [삭제] 버튼과 마찬가지로 [추천] 버튼을 눌렀을 때
+    메시지가 적힌 팝업 창을 통해 추천을 진행할 것이다.
+  </p>
+  <p>thymeleaf의 javascript:void(0)는 구지 필요 없음.</p>
+  <h3>추천 확인용 JavaScript 내용 추가</h3>
+  <pre>
+const aLikes = document.querySelectorAll(".answerLike");
+aLikes.forEach(function(element) {
+    element.addEventListener('click', function() {
+      if(confirm("정말로 추천하시겠습니까?")) {
+          location.href = this.dataset.uri;
+      };
+    });
+});  </pre>
+  <h3>question service에 like method 추가</h3>
+  <pre>
+  public void vote(Question question, UserInfor userInfor) {
+      question.getVoter().add(userInfor);
+      this.questionRepository.save(question);
+  }    </pre>
+  <h3>question controller에 like method 추가</h3>
+  <pre>
+  @PreAuthorize("isAuthenticated()")
+  @GetMapping("/like/{id}")
+  public String questionLike(Principal principal,
+                             @PathVariable("id") Integer id) {
+      Question question = this.questionService.getQuestion(id);
+      UserInfor userInfor = this.userService.getUser(principal.getName());
+      this.questionService.like(question, userInfor);
+      return String.format("redirect:/ui/question/question_detail/%s", id);
+  }  </pre>
+</section>
+<section>
+  <h2>답변 추천 기능</h2>
+  <h3>question_detail.html에 답변 추천 기능 추가</h3>
+  <pre>th:data-rul="@{|/ui/answer/like/${answer.id}|}"</pre>
+  <h3>answer service에 like method 추가</h3>
+  <pre>
+  public void like(Answer answer, UserInfor userInfor) {
+    answer.getLike().add(userInfor);
+    this.answerRepository.save(answer);
+  }      </pre>
+  <h3>answer controller에 like method 추가</h3>
+  <pre>
+  @PreAuthorize("isAuthenticated()")
+  @GetMapping("/like/{id}")
+  public String answerLike(Principal principal,
+                           @PathVariable("id") Integer id) {
+    Answer answer = this.answerService.getAnswer(id);
+    UserInfor userInfor = this.userService.getUser(principal.getName());
+    this.answerService.like(answer, userInfor);
+    return String.format("redirect:/ui/question/question_detail/%s", answer.getQuestion().getId());
+  }      </pre>
+</section>
+</main>
+</body>
+</html>

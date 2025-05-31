@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Spring Actuator</h1>
+<h2>제공 기능</h2>
+  <ul>
+    <li>app과 상호작용하면서 모니터링 수행</li>
+    <li>다양한 metrics를 수집</li>
+    <li>db상태와 트래픽을 알고 있음</li>
+  </ul>
+  <h2>pom.xml</h2>
+  <h3>implements org.springframework.boot:spring-boot-starter-actuator</h3>
+  <p>경로; /actuator, env, health, metrics, beans, configprops, loggers, httpexchanges, mappings,  ...</p>
+  <p>경로; heapdump, prometheus,  ...</p>
+  <p>관련 자료 : https://docs.spring.io/spring-boot/reference/actuator/index.html</p>
+  <h2>관련 설정</h2>
+  <h3>exception handler를 ExceptionHandlerAdvice에 추가</h3>
+  <h3>application.yml에 관련 config 추가 필요</h3>
+  <h2>공통 적용</h2>
+  <pre>
+management:
+  endpoints:
+    web:
+      exposure: # /actuator에 내역 추가
+        include: |
+                health,info,metrics,env,beans,confiprops
+                ,heapdump,httpexchanges,logger,mappings
+#            include: "*"
+#            exclude: 제거할 내역
+  </pre>
+  <h3>include에 정의한 항목이 보임(/actuator)</h3>
+
+  <h2>health 관련</h2>
+  <pre>
+management:
+  endpoint:
+    health: # health 항목에 대한 설정
+      show-details: always # health에 대해 자세한 내용을 보여줌(안하면 up만 나옴)
+      probes:
+        enabled: true # livenessState, readinessState를 보여줌
+  </pre>
+  <h4>디스크 상태 모니터링 만들기; implements HealthIndicator</h4>
+  <h4>/health에 usableDisk 추가</h4>
+  <pre>
+@Component
+public class UsableDiskHealthIndicator  implements HealthIndicator {
+  public Health health() {
+    File file = new File("."); // disk space 경로
+    long usableDiskInBytes = file.getUsableSpace();
+    boolean isHealth = usableDiskInBytes >= 10 * 1024 * 1024; // 10MB
+    Status status = isHealth ? Status.UP : Status.DOWN;
+    return Health
+        .status(status)
+        .withDetail("usable disk", usableDiskInBytes)
+        .withDetail("threshold", 10 * 1024 * 1024)
+        .build();
+  }
+}
+  </pre>
+  <pre>health indicator: https://docs.spring.io/spring-boot/reference/actuator/endpoints.html
+        #actuator.endpoints.health.auto-configured-health-indicators</pre>
+  <h2>info</h2>
+  <h3>default에는 아무것도 없음: {}</h3>
+  <pre>
+# 우선 endpoint를 추가
+management:
+  info:
+    env: # 기본 정보
+      enabled: true
+    git: # 깃 정보, pom.xml에 plugin 필요
+      enabled: true
+      mode: full
+    build: # pom.xml에 plugin 필요
+      enabled: true # default false
+    java:
+      enabled: true
+    os:
+      enabled: true
+
+# infor 정보를 추가
+info:
+  app:
+    name: app 이름
+    description: 설명
+    version: @project.version@ # pom.xml에서 정보 가져오기
+    links:
+      youtube: http://lllllll
+      gitHub: https://slslsls </pre>
+  <h4>git 정보 생성하기; pom.xml</h4>
+  <pre>
+build.plugins.plugin
+  groupId: io.github.git-commit-id
+  artifactId: git-commit-id-maven-plugin
+  </pre>
+  <h4>위 적용을 위해서는 git properties 파일을 가져오기 위해 실행시 ./mvnw spring-boot:run </h4>
+  <h4>target에 git.properties 파일을 생성함</h4>
+  <pre>
+build.plugins.plugin 밑의 artifactId와 같은 계위에
+  executions.execution.goals.goal: build-info
+  </pre>
+  <h4>위 적용을 위해서는 git properties 파일을 가져오기 위해 실행시 ./mvnw spring-boot:run </h4>
+  <h4>target에 build-info.properties 파일을 생성함</h4>
+
+  <h2>metrics</h2>
+  <h3>세부 정보 보기: metrics/이름</h3>
+  <h4>/actuator/metrics/spring.data.repository.invocations; 실행된 repository</h4>
+  <h5>접속하면 우선 userRepository에 접속한 후에 실행하는 repository를 실행해서 2개 또는 3개가 실행됨</h5>
+  <h3>좀더 세부정보 검색 : spring.data.repository.invocations?tag=method:findByUsername</h3>
+  <h4>tag에서 method를 검색하고 values에서 findByUsername을 검색</h4>
+  <h3>http.server.requests; http requests에 대한 정보</h3>
+  <pre>metrics 정보 : https://docs.spring.io/spring-boot/reference/actuator/metrics.html
+          #actuator.metrics.supported</pre>
+  <h3>특정 controller에서 metrics 추출하기</h3>
+  <pre> // controller로 가서
+  private final MeterRegistry meterRegistry;
+
+  @GetMapping
+  ...
+  원하는 action 다음에(ex; artifactService.findById())
+  meterRegistry. // timer(시작 종료 시간), gauge(upper bound 등)
+  meterRegistry.counter("artifact.id."+ artifactId).increment();
+  </pre>
+  <h4>metrics에 artifact.id.12302 가 새로 생김(해당 id를 실행했으면)</h4>
+  <h4>metrics/artifact.id.12302로 가서보면 실행한 횟수가 표시됨</h4>
+  <h3>특정 service의 latency 측정하기</h3>
+  <h4>해당 서비스 메서드로 가서 @Timed("findAllArtifactsService.time") 추가하면됨</h4>
+  <h4>metrics에서 보면 findAllArtifactsService.time 생성되어 있음</h4>
+  <h4>metrics/findAllArtifactsService.time ; max, total time 등이 보임</h4>
+
+  <h2>/actuator/env ; activeProfiles 등 많은 정보를 보여줌</h2>
+  <h3>기본적으로 value 정보는 안보여줌, 볼려면 management:endpoint:env:show-values: always 추가</h3>
+  <pre>
+management:
+  endpoint:
+    env:
+      enabled: true
+      show-values: always  </pre>
+
+  <h2>/actuator/beans ; loading된 모든 bean 정보를 보여줌</h2>
+  <h2>/actuator/configprops ; @ConfigurationProperties 정보를 보여줌</h2>
+  <h3>spring datasource를 받는 클레스는 ? 숙제, 어디가서 찾지 ?</h3>
+  <h3>기본은 안보임, 볼려명</h3>
+  <pre>
+management:
+  endpoint:
+    configprops:
+      show-values: always </pre>
+
+  <h2>/actuator/heapdump ; memory관련 정보를 보여줌(다운로드)</h2>
+  <h3>파일을 받아서 MAT(Eclipse Memory Analyzer Tool, VisualVM, Intellij에서 분석 가능</h3>
+
+  <h2>httpexchanges</h2>
+  <h3>기본 적으로 접근이 안됨</h3>
+  <h4>/system/actuator/ActuatorConfiguration</h4>
+  <pre>
+@Configuration
+public class ActuatorConfiguration {
+  @Bean
+  public HttpExchageRepository httpExchangeRepository() {
+    InMemoryHttpExchangeRepository repo = new InMemoryHttpExchangeRepository();
+//        repo.setCapacity(1000); // 마지막 1000개의 request, response exchange만 보여줌
+    return repo;
+  }
+} </pre>
+  <h3>다양한 요청 답변 관련 세부 정보를 보여줌</h3>
+
+  <h2>loggers; log 정보를 보여줌</h2>
+  <h3>임시로 log level을 정의 할 수 있음</h3>
+  <pre>postman : (post) /actuator/loggers/edu.tcu.cs.hogwart
+body: { "configureLevel": "DEBUG" }
+postman : (get) /actuator/loggers/edu.tcu.cs.hogwart # 정보보기
+//원복하기
+postman : (post) /actuator/loggers/edu.tcu.cs.hogwart
+body: { "configureLevel": null }
+  </pre>
+
+  <h2>mappings ; controller의 mapping 정보를 보여줌</h2>
+
+  <h2>enabled, exposed</h2>
+  <h3>shutdown 빼고 모든 endpoint는 enble 됨</h3>
+  <h4>enabled하면 spring bean을 생성해서 등록 해줌, 효과적임</h4>
+  <h3>기본으로 health endpoint 만 http에 exposed 됨</h3>
+  <h4>expose는 원격에서 http request에 대해 응답해주는 것, 보안관련</h4>
+
+  <h2>사용자 endpoint 만들기</h2>
+  <h3>/system/actuator/CustomBeansEndpoint</h3>
+  <pre>
+@Component
+@Endpoint(id = "custom-beans")
+public class CustomBeansEndpoint {
+  private final ApplicationContext appContext;
+
+  @ReadOperation // @WriteOperation, @DeleteOperation 있음
+  public int beanCount() {
+    return appContext.betBeanDefinitionCount();
+  }
+}
+  </pre>
+  <h3>exposure에 추가: custom-beans</h3>
+
+  <h2>Security 설정하기</h2>
+  <pre>
+.requestMatchers(EndpointRequest.to("health","info")).permitAll()
+.requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health","info")).hasAuthority("ROLE_admin")
+  </pre>
+</main>
+</body>
+</html>

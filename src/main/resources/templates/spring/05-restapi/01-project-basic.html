@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>rest api test: controller</h1>
+  <section>
+    <h2>hello controller</h2>
+    <pre>@RestController
+public class HelloController {
+
+  @GetMapping("/hello")
+  @ResponseBody
+  public String helloController() {
+    return "Hello Rest api";
+  }
+}    </pre>
+  </section>
+  <section>
+    <h2>entity</h2>
+    <pre>
+@Entity(name="product")
+@Getter
+@Setter
+public class ProductEntity {
+
+  @Id
+  String id;
+
+  String productName;
+  Integer price;
+  Integer stocks;
+}
+    </pre>
+  </section>
+  <section>  <h2>repository</h2>
+  <pre>
+public interface ProductRepository&lt;ProductEntity, String&gt; {
+}  </pre></section>
+  <section>
+    <h2>service</h2>
+    <pre>
+@Service
+@RequiredArgsConstructor
+public class ProductService {
+  private final ProductRepository productRepository;
+  public ProductEntity createProduct(ProductEntity productEntity) {
+    return this.productRepository.save(productEntity);
+  }
+}
+    </pre>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>
+  </section>
+</main>
+<script>
+  async function helloFetch() {
+    let hello = await fetch('http://127.0.0.1:8080/hello');
+    let response = await hello.text();
+    console.log(response);
+    testResult.innerHTML = response;
+  }
+  helloFetch();
+</script>
+</body>
+</html>

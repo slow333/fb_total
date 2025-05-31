@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>Handle Spring Security Exceptions in a ControllerAdvice</h1>
+  <h2>Spring Security Exceptions</h2>
+    <h3>Authentication Exceptions</h3>
+      <h4>UsernameNotFoundException; 사용자 정보 없음</h4>
+      <h4>BadCredentialsException; 패스워드 틀림</h4>
+      <h4>InvalidBearerTokenException ; 토큰 비정상</h4>
+    <h3>Authorization Exceptions</h3>
+      <h4>AccessDeniedException ; 권한 없음(No permission)</h4>
+    <h3>AccountStatusException ; username, password 미입력 애러</h3>
+      <h4>이거 custom entry point 만들고 적용</h4>
+
+  <h2>@ControllerAdvice에 예외 정의</h2>
+  <pre>@ControllerAdvice
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+    @ExceptionHandler(InvalidBearerTokenException.class)
+    @ExceptionHandler(AccessDeniedException.class) // 이거 임포트 할때 조심해야함.io. 뭐 아님
+    
+    //id, password 없을 때에 대한 예외 처리
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    Result handleInsufficientAuthenticationException(InsufficientAuthenticationException ex){
+      return new Result(true, StatusCode.UNAUTHORIZED, "Login credentials are missing", ex.getMessage());
+    }
+    // Fallback handles any unhandled exception //
+  </pre>
+  <h3>이상태에서는 controller advice에서 exception을 받지 못함</h3>
+  <p>controller에서 도착하기 전에 security에서 애러를 먼저 처리함</p>
+  <h2>security exception을 controller advice에서 처리하기</h2>
+  <h3>basic authentication에 대해 처리시 AuthenticationEntryPoint에 대한 정의가 필요</h3>
+  <pre>
+    // 이 class에서 basic authentication에 대해 처리
+    // resolver에 AuthenticationEntryPoint를 적용함
+    public class CustomBasicAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+      // DefaultHandlerExceptionResolver를 통해서 security exception을 controller advice에서 처리 가능하게 함
+      private final HandlerExceptionResolver resolver;
+      public CustomBasicAuthenticationEntryPoint(@Qualifier("handlerExceptionResolver")
+          HandlerExceptionResolver resolver) {
+        this.resolver = resolver;
+      }
+
+      @Override
+      public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception){
+        response.addHeader("WWW-Authenticate", "Basic realm=\"Realm\""); // httpBasic에서 사용하기 위해 필요.
+        this.resolver.resolveException(request, response, null, exception);
+      }
+    }
+  </pre>
+  <h3>security auth의 httpBasic에 적용</h3>
+  <pre>
+    httpBasic(httpBasic - httpBasic.authenticationEntryPoint(this.customBasicAuthenticationEntryPoint))
+  </pre>
+  <h3>jwt token에 대한 애러 처리</h3>
+  <pre>
+    // JWT authentication에 대한 예외 처리
+    public class CustomBearerTokenAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+      // DefaultHandlerExceptionResolver를 통해서 security exception을 controller advice에서 처리 가능하게 함
+      private final HandlerExceptionResolver resolver;
+      public CustomBearerTokenAuthenticationEntryPoint(@Qualifier("handlerExceptionResolver")
+          HandlerExceptionResolver resolver) {
+        this.resolver = resolver;
+      }
+
+      @Override
+      public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception){
+        this.resolver.resolveException(request, response, null, exception);
+      }
+    }
+  </pre>
+  <h3>security auth의 oauth2ResourceServer에 적용</h3>
+  <pre>
+    oauth2ResourceServer(server - server.authenticationEntryPoint(this.customBearerTokenAuthenticationEntryPoint))
+  </pre>
+  <h3>JWT auth의 access deny에 대한 예외 처리</h3>
+  <pre>
+    // entry point가 아니고 handler 임
+    public class CustomBearerTokenAccessDeniedHandler implements AccessDeniedHandler {
+
+      // DefaultHandlerExceptionResolver를 통해서 security exception을 controller advice에서 처리 가능하게 함
+      private final CustomBearerTokenAccessDeniedHandler resolver;
+      public CustomBearerTokenAccessDeniedHandler(@Qualifier("handlerExceptionResolver")
+          HandlerExceptionResolver resolver) {
+        this.resolver = resolver;
+      }
+
+      @Override
+      public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception){
+        this.resolver.resolveException(request, response, null, exception);
+      }
+    }
+  </pre>
+  <h3>security auth의 oauth2ResourceServer에 적용</h3>
+  <pre>
+    oauth2ResourceServer(server - server.accessDeniedHandler(this.customBearerTokenAccessDeniedHandler))
+  </pre>
+</main>
+</body>
+</html>

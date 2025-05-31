@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>실제 DB 생성 및 연결하기(MySql, Mariadb, ...)</h1>
+  <h2>적용하기</h2>
+  <h3>@Profile("dev") : dev에서만 실행됨</h3>
+  <h4>DBInitializer에 적용 </h4>
+  <h3>@ActiveProfiles(value="dev") : prod 상태에서도 dev 설정으로 실행됨</h3>
+  <h4>test file 들에 모두 적용하면 prod 에서도 dev로 실행됨</h4>
+
+  <h2>application 파일 내용</h2>
+  <h3>공통 사항은 application.yml</h3>
+  <pre>
+spring:
+  profiles:
+    active: dev # 실행 시 application-dev.yml 적용
+api:
+  base-url: /api/v1
+
+server:
+  port: 80
+  </pre>
+  <h3> application-dev.yml</h3>
+  <pre>
+spring:
+  datasource:
+    url: jdbc:h2:mem:fullstack
+    username: sa
+    password:
+  jpa:
+    show_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cloud:
+    azure:
+      storage:
+        account-name: ${AZURE_STORAGE_ACCOUNT_NAME:my-azure-account-name-from-azure-subscribe}
+        account-key: ${AZURE_STORAGE_ACCOUNT_KEY:my-azure-account-kye-from-azure-subscribe}
+#   최대로 서버에 올릴 수 있는 파일 크기 지정
+  servlet:
+    multipart:
+      max-file-size: 2MB # 한개 파일
+      max-request-size: 10MB # 여러개 파일
+ai:
+  openai:
+    endpoint: ${AI_OPENAI_ENDPOINT:https://api.openai.com/v1/chat/completions}
+    api-key: ${AI_OPENAI_API_KEY:MY_API_KEY}
+  </pre>
+  <h3>application-prod.yml</h3>
+  <pre>
+spring:
+  datasource:
+    # 내가 만든 db 서버의 url
+    url: ${datasource-url:jdbc:mariadb://127.0.0.1:3306/api}
+    # 내가 정의한 개정이름(root는 기본 값임) env variable에 정의하면 그게 값이됨
+    username: ${datasource-username:root}
+    # run > more action > edit > environment variable : datasource-password=내암호
+    password: ${datasource-password:password}
+    driverClassName: org.mariadb.jdbc.Driver
+  cloud:
+    azure:
+      keyvault:
+        secret:
+          property-sources[0]:
+            endpoint: ${AZURE_KEY_VAULT_ENDPOINT} # environment variable
+      storage:
+        blob:
+          # azure 서비스 이용하면 환경변수로 지정
+          account-name: ${AZURE_STORAGE_ACCOUNT_NAME:my-azure-account-name-from-azure-subscribe}
+          # production에서는 불필요 대신 스토리지에 대한 app의 접근 권한을 주어야함
+#          account-key: ${AZURE_STORAGE_ACCOUNT_KEY:my-azure-account-kye-from-azure-subscribe}
+  servlet:
+    multipart:
+      max-file-size: 2MB # 한개 파일
+      max-request-size: 10MB # 여러개 파일
+  jpa:
+    hibernate:
+      ddl-auto: none
+  # azure에 redis를 설치하고 실행 할때 필요한 구성
+  data:
+    redis:
+      host: ${redis-host} # secret from Azure key vault
+      port: 6480
+      username: ${redis-username}  # secret from Azure key vault
+      ssl:
+        enabled: true
+      azure:
+        passwordless-enabled: true
+ai:
+  openai:
+    # azure 서비스 이용하면 환경변수로 지정
+    endpoint: ${AI_OPENAI_ENDPOINT:https://api.openai.com/v1/chat/completions}
+    # azure 서비스 이용하면 key vault에 값 저장 필요
+    api-key: ${AI_OPENAI_API_KEY:MY_API_KEY}
+  </pre>
+
+  <h2>azure key vault 적용에 필요한 dependency</h2>
+  <pre>
+  com.azure.spring: spring-cloud-azure-starter-keyvault;
+  dependencyManagement:
+    dependencies:
+      dependency:
+        com.azure.spring: spring-cloud-azure-depencencies
+        version: ${spring-cloud-azure.version}
+        type: pom
+        scope:import
+  properties
+    java.version: 17
+    spring-cloud-azure.version: 5.6.0
+  </pre>
+  <h2>azure에 db, keyvault, 기본 server 설정/가입 필요</h2>
+
+</main>
+</body>
+</html>

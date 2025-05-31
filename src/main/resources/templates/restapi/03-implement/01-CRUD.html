@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>CRUD</h1>
+
+  <h2>findById(GET)</h2>
+  <h3>controller test에 필요한 annotation</h3>
+  <p>@SpringBootTest</br>
+    @AutoConfigureMockMvc(addFilter = false) //security를 적용하지 않음</p>
+  <pre>
+  @Autowired
+  MockMvc mockMvc; // 외부에서 들어오는 http request를 가상으로 생성해줌
+  @MockitoBean  // service mock 함
+  ArtifactService artifactService;
+  List[artifact] artifacts;
+  @BeforeEach
+  void setup() {
+    this.artifacts = new ArrayList[]();
+    Artifact class를 생성 6개;
+    Wizard class를 생성 3개;
+    artifact에 wizard를 정의함;
+    list에 artifact를 추가함;
+  }
+  @Test
+  void testFindByIdSuccess{
+    // Given
+    given(artifactService.findById("1235").willReturn(artifacts.get(0));
+    // When and Then
+    mockMvc.perform(get("/api/v1/artifacts/1235").accept(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.flag")).value(true)
+      .andExpect(jsonPath("$.data.id")).value("해당id")
+      .andExpect(jsonPath("$.data.name").value(위에서 정의한 이름)
+      .andExpect(jsonPath("$.data", Matchers.hasSize(artifactList.size()));
+  }
+  // jsonPath ; MockMvcRequestBuilders </pre>
+  <h3>controller 코드 작성</h3>
+  <h4>여기에서는 애러처리 필요없음: service에서 exception 처리함</h4>
+  <h4>Result를 return 함</h4>
+  <h3>exception 시험</h3>
+  <pre>
+  @Test
+  void testFindByIdSuccess{
+    // Given
+    given(artifactService.findById("1235").willReturn(artifacts.get(0));
+    // When and Then
+    mockMvc.perform(get("/api/v1/artifacts/1235").accept(MediaType.APPLICATION_JSON))
+      .andExpect(jsonPath("$.flag").value(false))
+      .andExpect(jsonPath("$.data.id").value("해당id"))
+      .andExpect(jsonPath("$.data").isEmpty());
+  }  </pre>
+  <h3>Controller에서 exception 처리를 위해서는 exception handler가 필요함</h3>
+  <h4>system/exception/ExceptionHandlerAdvice </h4>
+  <pre>
+  @RestControllerAdvice // AOP를 통해 controller의 exception을 처리함
+  public class ExceptionHandlerAdvice{
+    @ExceptionHandler(ArtifactNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND) // 이거는 기본적으로 헤더에 추가해서 넣어줌
+    Result artifactNotFoundExceptionHandler(ArtifactNotFoundException ex) {
+      return new Result(false, StatusCode.NOT_FOUND, ex.getMessage());
+    }
+  }  </pre>
+
+  </br>
+  <h2>Dto class를 생성</h2>
+  <h3>Dto는 일반적인 class나 record로 생성 가능</h3>
+  <h4>dto to entity, entity to dto로 변환을 위한 class를 생성: implements Converter[From, To] 해서 사용</h4>
+  <h4>@Component 잊지 마세요.</h4>
+  <h3>Controller, Service 구현</h3>
+  <h4>Controller에서는 dto를 사용해서 request에 응답하고, Service에서는 entity를 활용</h4>
+  <h4>findAll, findById, delete, update</h4>
+  <pre>
+    // Service
+    public List[Artifact] findAll() { return List.of(); };
+    // Test를 수행해 가면서 서비스의 나머지를 작성함(TDD)  </pre>
+
+  </br>
+  <h2>findAll(GET)</h2>
+  <h3>findAll service test</h3>
+  <h3>@BeforeEach void setup() { artifact list 정의 }</h3>
+  <pre>
+    @Mock // repository와 분리해서 시험하기 위해 가상의 repo 구성
+    private ArtifactRepository artifactRepository;
+    @InjectMocks // 위에서 생성한 mock를 받아서 실제 수행할 di
+    private ArtifactService artifactService;
+
+    @Test
+    void testFindAllSuccess() {
+      // Given
+      given(artifactRepository.findAll()).willReturn(artifacts);
+    // When
+    List[Artifact] artifacts = artifactService.findAll();
+    // Then
+    assertThat(artifacts.size()).isEqualTo(artifacts.size());
+    verify(artifactRepository, times(1)).findAll();
+    }  </pre>
+  <h3>findAll Controller test</h3>
+  <pre>
+    // Given
+    given(artifactService.findAll()).willReturn(artifacts);
+    // When and Then
+    mockMvc.perform(get("/artifacts").accept(MediaType.APPLICATOIN_JSON))
+      .andExpect(jsonPath("$.flag").value(true))
+      .andExpect(jsonPath("$.data", Matchers.hasSize(artifacts.size())))
+      .andExpect(jsonPath("$.data[0].id").value("id value"));
+  </pre>
+  <h3>controller</h3>
+  <pre>
+  artifact list - artifact dto(stream().map(a - converter(a)).toList() - return new Result;
+  </pre>
+  <h3>integration test는 postman으로 수행; 대신할 test 생성해서 해도됨</h3>
+
+  </br>
+  <h2>ADD(POST)</h2>
+  <h3>add는 controller에서 받을 때 @RequestBody DtoObject dto로 받음</h3>
+  <h4>이러면 spring에서 자동으로 json을 java 객체로 변환해서 전달함 </h4>
+  <h3>artifact의 id를 생성하기 위해 IdWorker를 생성해서 주입해야함</h3>
+  <h4>IdWoker 생성 → Application에서 @Bean을 만들어줌</h4>
+  <pre>
+    @Bean
+    public IdWorker idWorker() {
+      return new IdWorker(1,1);
+    }  </pre>
+  <h3>service test</h3>
+  <h4>given에 넣어줄 객체 생성 </h4>
+  <h4>idWorker를 사용하므로 @Mock해주고 given에 주입해주어야 함</h4>
+  <h4>given(idWorker.nextId()).willReturn(1234456L); // idWorker는 long을 return함</h4>
+  <h4>구현시 artifact.setId(idWorker.nexId() + ""); 필요</h4>
+  <h3>controller test</h3>
+  <h4>given에 넣어줄 dto 객체를 생성 → 객체를 json으로 변환(ObjectMapper)</h4>
+  <h4>given에서 service에 넣어줄 객체는 Mockito.any(Artifact.class)로 해줌</h4>
+  <h4>when에서 accept, contentType, content(json으로 변환한 string) 정의해서 받음</h4>
+  <pre>String json = objectMapper.writeValueAsString(dto);</pre>
+
+  <h3>validation 구현: pom.xml에 관련 dependency 추가 필요</h3>
+  <h4>입력받는 dto 값의 적정성을 검증하기 위해 dto에 @NotEmpty(message="blaablass") 추가</h4>
+  <h4>controller의 @RequestBody 에도 @Valid 추가</h4>
+  <h4>이 애러는 controller에서 발생하므로 @RestControllerAdvice에 ExceptionHandler를 추가해야함</h4>
+  <pre>
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Result name(MethodArgumentNotValidException ex) {
+      List[ObjectError] errors = ex.getBindingResult().getAllErrors();
+      Map[String, String] map = new HashMap[](errors.size());
+      errors.forEach(e --- {
+        String key = ((FieldError) e).getField();
+        String value = e.getDefaultMessage();
+        map.put(key, value);
+      });
+      return new Result(false, StatusCode.BAD_REQUEST,
+          "Provided arguments invalid.", map);
+    }  </pre>
+
+  </br>
+  <h2>UPDATE(PUT)</h2>
+  <p>controller는 @PathVariable, @Valid @RequestBody 를 받음</p>
+  <h3>service test</h3>
+  <h4>Given</h4>
+  <h5>old, update 2개의 객체를 생성</h5>
+  <h5>given에서 새로 넣어 주는 객체는 Mockito.any(클래서.class)로 해서 넣어 주어야함</h5>
+  <h5>given에서 update를 위한 id는 eq(id)로 해서 넣어 주어야함
+  <div>eq import : import static org.mockito.ArgumentMatchers.eq;</div></h5>
+  <h5>findById한 후에 save(old, old)해야함</h5>
+  <h4>then</h4>
+  <h5>verify에서 findById와 save를 수행</h5>
+  <h4>updateNotFound</h4>
+  <h5>given 결과는 Optional.empty()</h5>
+  <h5>When : 예외 발생 방법은 Throwable thrown assertThrows(?.*Exception.class, () - {} )</h5>
+  <h3>service main</h3>
+  <h4>design pattern : fluent interface, increase code legibility</h4>
+  <pre>
+    return artifactRepository.findById("id").map(
+      artifact ▶ {
+        artifact.setName(update.getName()); ...
+        artifactRepository.save(artifact);
+      })
+      .orElseThrow(() ▶ new ArtifaceNotFoundException(artifactId) );  </pre>
+  <h3>controller test</h3>
+  <h4>Given에서 update할 dto 객체, entity(updateArtifact) 객체 생성</h4>
+  <h4>given에서 id를 주입할 때 eq("id"), Mockito.any(Artifact.class)로 해야함,
+    결과는 updateArtifact임</h4>
+  <h4>Not found</h4>
+  <h5>Given: 주입 eq("id"), Mockito.any(Artifact.class)
+    결과는 willThrow(new ArtifactNotFoundException("id")</h5>
+  <h3>controller main</h3>
+  <h4>convert artifactDto(from request body) to artifact, save(artifact), convert to dto</h4>
+
+</br>
+  <h2>DELETE</h2>
+  <h3>service test</h3>
+  <h4>given: findById 후에 delete 수행(return이 없는 경우 doNothing으로 처리 해야함) </h4>
+  <h4>doNothing().when(repository).findById("id");</h4>
+  <h3>controller test</h3>
+  <h4>given: doThrow(new ?.*Exception).when(service).delete("id");</h4>
+</main>
+</body>
+</html>

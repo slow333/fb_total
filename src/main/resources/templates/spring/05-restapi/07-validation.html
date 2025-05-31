@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>validation</h1>
+  <section>
+    <h2>필드 값</h2>
+    <pre>
+@NotNull : 해당 필드에 null값을 불허한다.
+@NotEmpty : 해당 필드에 null, ""을 불허한다.
+@NotBlank : 해당 필드에 null, "", " " 을 불허한다. 즉 최소 1글자
+@Min : 해당 필드의 최소값을 벗어나는지 검증한다.
+@Max : 해당 필드의 최대값을 벗어나는지 검증한다.
+@Pattern : 해당 필드가 특정 형태를 가지도록 검증한다. (정규표현식으로 표현함)
+@Email : 해당 필드가 이메일 형식을 가지도록 검증한다.
+@Size : 문자열의 최소, 최대 크기를 검증한다.
+@Size(min=10, max=100) 과 같이 사용할 수 있으며, 기본값은 min=0, max=정수형의 최대값 이다.
+    </pre>
+    <h2>활용하기</h2>
+    <pre>
+public class ProductDto {
+  @NotEmpty(message = "아이디는 필수항목입니다.")
+  private String productId;
+
+  @NotEmpty(message = "이름은 필수항목입니다.")
+  private String productName;
+
+  @NotEmpty(message = "가격은 필수항목입니다.")
+  @Size(min=0,max = 9000000, message = "900만원 이하입니다.")
+  private int productPrice;
+
+  @NotEmpty(message = "제고는 필수항목입니다.")
+  @Max(value = 9999, message = "최대 9999 입니다.")
+  private int productStock;
+
+  @FutureOrPresent(message = "현재 날짜 이후 만 가능합니다.")
+  private LocalDateTime createDate;
+}    </pre>
+  </section>
+  <section>
+    <h2>GlobalExceptionHandler 생성해야함</h2>
+    <h2>좀더 봐야함....</h2>
+    <pre>
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity&lt;Response> methodArgumentNotValidException(
+          MethodArgumentNotValidException e) {
+    return ResponseEntity
+            .badRequest()
+            .body(new Response("ERROR By Validation", e.getMessage()));
+  }
+
+  @Getter
+  @AllArgsConstructor
+  public static class Response {
+    private String code;
+    private String message;
+  }
+}    </pre>
+  </section>
+  <section>
+    <h2>컨트롤러에 적용하기</h2>
+    <pre>
+  @PostMapping("/product")
+  public ResponseEntity&lt;ProductEntity> createProduct(
+          @Valid @RequestBody ProductDto productDto) {
+
+    ProductEntity productEntity = productService.saveProduct(
+            productDto.getProductId(), productDto.getProductName(),
+            productDto.getProductPrice(), productDto.getProductStock(), LocalDateTime.now());
+    return ResponseEntity.status(HttpStatus.CREATED).body(productEntity);
+  }    </pre>
+    <h2>@Valid하면 Dto에 적용한 메시지가 응답으로 나타남</h2>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>
+  </section>
+</main>
+</body>
+</html>

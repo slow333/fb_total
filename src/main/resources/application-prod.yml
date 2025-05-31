@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: ${datasource-url:jdbc:mariadb://127.0.0.1:3306/api} # 내가 만든 db 서버의 url
+    username: ${datasource-username:root} # 내가 정의한 개정이름(root는 기본 값임) env variable에 정의하면 그게 값이됨
+    password: ${datasource-password:password} # run > more action > edit > environment variable : datasource-password=내암호
+  cloud:
+    azure:
+      keyvault:
+        secret:
+          property-sources[0]:
+            endpoint: ${AZURE_KEY_VAULT_ENDPOINT} # environment variable
+      storage:
+        blob:
+          account-name: ${AZURE_STORAGE_ACCOUNT_NAME:my-azure-account-name-from-azure-subscribe} # azure 서비스 이용하면 환경변수로 지정
+#          account-key: ${AZURE_STORAGE_ACCOUNT_KEY:my-azure-account-kye-from-azure-subscribe} # production에서는 불필요 대신 스토리지에 대한 app의 접근 권한을 주어야함
+  servlet:
+    multipart:
+      max-file-size: 2MB # 한개 파일
+      max-request-size: 10MB # 여러개 파일
+  jpa:
+    hibernate:
+      ddl-auto: none
+  # azure에 redis를 설치하고 실행 할때 필요한 구성
+  data:
+    redis:
+      host: ${redis-host} # secret from Azure key vault
+      port: 6480
+      username: ${redis-username}  # secret from Azure key vault
+      ssl:
+        enabled: true
+      azure:
+        passwordless-enabled: true
+ai:
+  openai:
+    endpoint: ${AI_OPENAI_ENDPOINT:https://api.openai.com/v1/chat/completions} # azure 서비스 이용하면 환경변수로 지정
+    api-key: ${AI_OPENAI_API_KEY:MY_API_KEY} # azure 서비스 이용하면 key vault에 값 저장 필요

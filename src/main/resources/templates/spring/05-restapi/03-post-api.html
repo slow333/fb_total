@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>POST API</h1>
+  <h2>get과 별반 다르지 않음</h2>
+  <section>
+    <pre>
+  @PostMapping("/person")
+  public String postPerson(@RequestBody Map&lt;String, Object> person) {
+    StringBuilder sb = new StringBuilder();
+    person.forEach((key, value) -> sb.append(key + ":" + value+"\n"));
+    return sb.toString();
+  }
+  @PostMapping("/person2")
+  public String postPerson2(@RequestBody PersonDTO personDTO) {
+    return personDTO.toString();
+  }
+
+  @PostMapping("/person3")
+  public String postPerson3(@RequestParam("name") String name,
+                            @RequestParam("age") String age) {
+    return name + ", "+age;
+  }    </pre>
+    <h3>주의 사항</h3>
+    <h4>DTO로 param을 받을 때는 @RequestBody 필요없음</h4>
+    <h4>@RequestParam("받는 파라미터")를 명시해 주어야 함</h4>
+    <h4>@PathVariable("받는이름") String 변경하고 싶은 이름</h4>
+  </section>
+  <section>
+    <h2>fetch 요청하기</h2>
+    <pre>
+let url = "http://localhost:8080/api/v1/test/person";
+let url2 = "http://localhost:8080/api/v1/test/person2";
+let url3 = "http://localhost:8080/api/v1/test/person3?name=param request3&age=9";
+async function fetchTest(url) {
+  try {
+    let hello = await fetch(url,{
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name:"KIM", age: 32, email:"ca@cm" })
+    });
+    let response = await hello.text();
+    console.log(response);
+    testResult.innerHTML += response+"&lt;br>";
+  } catch (e) {
+    console.log(e.message);
+  }
+}
+fetchTest(url);
+fetchTest(url2);
+fetchTest(url3);
+    </pre>
+    <h3>post api에서 Map으로 받던지, DTO로 받던지  body에서 json으로 요청해야함</h3>
+    <h3>headers에 Content-type을 application/json을 지정해야함</h3>
+    <h3>응답 유형을 보고 response에서 맞추어서 받아야함</h3>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>
+  </section>
+</main>
+<script>
+  let url = "http://localhost:8080/api/v1/test/person";
+  let url2 = "http://localhost:8080/api/v1/test/person2";
+  let url3 = "http://localhost:8080/api/v1/test/person3?name=param request3&age=9";
+  async function fetchTest(url) {
+    return await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name:"KIM",
+        age: 32,
+        email:"cal@com",
+        address: {
+          city: "daejeon",
+          code: "352-06",
+          street: 909
+        }
+      })
+    });
+  }
+  fetchTest(url).catch(e => console.log(e.message))
+  fetchTest(url)
+          .then((hello) => hello.text())
+          .then((response) => testResult.innerHTML += response+"<br>")
+          .catch((error) => console.log(error));
+
+  fetchTest(url2)
+          .then((hello) => hello.text())
+          .then((response) => testResult.innerHTML += response+"<br>")
+          .catch((error) => console.log(error));
+  fetchTest(url3)
+          .then((hello) => hello.text())
+          .then((response) => testResult.innerHTML += response+"<br>")
+          .catch((error) => console.log(error));
+</script>
+</body>
+</html>

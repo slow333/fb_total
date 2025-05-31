@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> <script src="/js/menu/loadNav.js"></script> </head>
+<body>
+<main>
+<h1>INSERT INTO</h1>
+  <pre>INSERT INTO table_name (column1, column2, column3, ...)
+  VALUES (value1, value2, value3, ...);
+
+INSERT INTO Customers (name, Address, City, PostalCode, Country)
+  VALUES ('Cardinal', 'Tom B. Erichsen', 'Skagen 21', 'Stavanger', '4006', 'Norway'),
+  ( .... ), ( .... );</PRE>
+<!-- ############## VIEW #########################-->
+<h1>VIEW</h1>
+<h2>기존 테이블을 바탕으로 새로운 가상의 테이블을 생성(자동업데이트)</h2>
+  <pre>CREATE VIEW view_name AS
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition;</pre>
+<pre>CREATE VIES em_office AS 
+  SELECT first_name, offices.address FROM employees 
+  LEFT JOIN offices ON employees.office_id = offices.office_id;
+SELECT * FROM em_office;</pre>
+<PRE>-- 다룰 때는 일반 테이블 다루듯이 하면됨
+SELECT * FROM view_name;
+DROP VIEW view_name;
+ALTER VIEW view_name AS SELECT ...; -- 기존 뷰를 변경
+CREATE OR REPLACE VIEW view_name AS SELECT ...; -- 기존 뷰를 변경</PRE>
+<!-- ############## UPDATE table_name SET #########################-->
+<h1>UPDATE</h1>
+  <pre>UPDATE table_name
+    SET column1 = value1, column2 = value2, ...
+    WHERE condition;</pre>
+  <pre>UPDATE customer
+    SET name = '김관용', country = '한국', address = '대전시 서구'
+    WHERE id = 2;</pre>
+<!-- ############## DELETE FROM #########################-->
+<h1>DELETE</h1>
+  <pre>DELETE FROM table_name WHERE condition;</pre>
+  <pre>DELETE FROM customer
+  WHERE email LIKE 'malebrooke6@%';
+DELETE FROM car
+  WHERE price = null;</pre>
+<!-- ############## on delete: foreign key가 있을 때 #########################-->  
+ <h2>ON DELETE SET NULL ; FOREIGN KEY가 지워지면 이를 참조하는 테이블의 값을 NULL로 함</h2>
+ <pre>alter table employees drop constraint FK_Office_id;
+ALTER TABLE employees ADD FOREIGN(office_id) 
+  REFERENCES offices(office_id) ON DELETE SET NULL; -- 부모 테이블에서 삭제시 자식 테이블의 값을 NULL로 함
+ -- OR
+ALTER TABLE table_name
+  ADD CONSTRAINT constraint_name -- 제약조건 이름(같은 이름)
+  FOREIGN KEY (column_name)
+  REFERENCES parent_table (parent_column)
+  ON DELETE CASCADE; -- 부모 테이블에서 삭제시 자식 테이블도 삭제
+ --OR,  ON DELETE NULL; -- 부모 테이블에서 삭제시 자식 테이블의 값을 NULL로 함
+ </pre>
+ <pre>ALTER TABLE employees 
+  ADD CONSTRAINT fk_employees_office_id 
+  FOREIGN KEY(office_id) REFERENCES offices(office_id) ON DELETE CASCADE;</pre>
+ <h2>ON DELETE SET CASCADE ; FOREIGN KEY가 지워지면 이를 참조하는 테이블의 ROWW를 지움</h2>
+<!-- ############## TABLE 구조는 남기고 데이터만 지움 #########################-->  
+<h2>TRUNCATE</h2>  
+  <pre>TRUNCATE TABLE table_name;</pre>
+  <pre>TRUNCATE TABLE customer;</pre>
+<!-- ############## 테이블 삭제 drop #########################-->
+<h2>delete table</h2>
+  <pre>DROP TABLE table_name;</pre>
+<!-- ############## COLUNM 위치이동 #########################-->
+<h2>column 위치 이동</h2>
+  <pre>ALTER TABLE t_name MODIFY COLUMN age INT AFTER last_name;</pre>
+
+</main>
+</body>
+</html>

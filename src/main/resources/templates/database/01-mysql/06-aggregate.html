@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <h1>SQL Aggregate</h1>
+  <h2>The most commonly used SQL arrgregate functions:</h2>
+  <ul>
+    <li>COUNT() - Returns the number of rows that matches a specified criterion</li>
+    <li>SUM() - Returns the total sum of a numeric column</li>
+    <li>AVG() - Returns the average value of a numeric column</li>
+    <li>MIN() - Returns the smallest value of the selected column</li>
+    <li>MAX() - Returns the largest value of the selected column</li>
+  </ul>
+
+  <h2>Min and Max</h2>
+  <pre>SELECT MIN(Price) FROM Product WHERE condition; </pre>
+  <pre>SELECT MAX(Price) FROM Product WHERE condition; </pre>
+  <pre>SELECT categoryID, 
+    min(price) AS min_price,
+    max(price) AS max_price,
+    avg(price) AS avg_price
+    FROM product
+    GROUP BY categoryid;</pre>
+
+  <h2>COUNT</h2>
+  <pre>SELECT COUNT(*) FROM Product WHERE condition;</pre>
+  <PRe>SELECT COUNT(country) FROM customer;</PRe>
+  중복 제거안하면 값이 있는 모든 ROW를 샘
+  <pre>SELECT count(city) as cityCount, count(DISTINCT country) as 'Country Count' 
+    FROM customer WHERE id  &lt; 33;</pre>
+  <pre>SELECT country, count(*) as '전체 레코드 숫자' 
+    FROM customer GROUP BY country;</pre>
+
+  <h2>SUM</h2>
+  <pre>SELECT SUM(price) FROM Product WHERE condition;</pre>
+  <pre>SELECT sum(quantity) FROM order_detail WHERE order_id = 1;</pre>
+  <pre>SELECT order_id as OrderID, sum(quantity) as Quantity, sum(price) as Price
+    FROM order_detail 
+    GROUP BY order_id
+    HAVING sum(quantity) > 2;</pre>
+  <pre>SELECT order_id, SUM(quantity * price) AS total_sales
+    FROM order_detail
+    GROUP BY order_id;</pre>
+  <pre>SELECT SUM(quantity * od.price) AS total_sales
+    FROM order_detail od
+    LEFT JOIN product ON od.product_id = product.id;</pre>
+
+  <h2>AVG</h2>
+  <pre>SELECT AVG(price) FROM Product WHERE condition;</pre>
+  <pre>SELECT CategoryID, AVG(price) AS average_price FROM product GROUP BY CategoryID;</pre>
+  <pre>SELECT AVG(price) AS average_price FROM product WHERE CategoryID = 1;</pre>
+  <pre>SELECT * FROM product
+    WHERE price > (SELECT AVG(price) FROM product)</pre>
+</main>
+</body>
+</html>

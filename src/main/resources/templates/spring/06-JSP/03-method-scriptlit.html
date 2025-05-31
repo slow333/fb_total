@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+  <section>
+    <h2>선언문</h2>
+<pre><% //스크립트릿
+  String str2= "== 지역번수 입니다. ==";
+  %></pre>
+    <h3>스크립트 릿에서 선언한 str2 <%= str2 %> </br>
+      전역변수에서 선언한 str은 위치에 상관없음. <%= str %> <%= getStr() %>
+    </h3>
+<pre>
+  <%! //선언문-전역변수 선언
+    String str = "== 전역변수 선언 ==";
+  %>
+  <%! //선언문-메소드 선언
+    String getStr() {
+      return str;
+    }
+  %>
+</pre>
+  </section>
+  <h1>선언문, 스크립트 릿, 표현식</h1>
+</main>
+</body>
+</html>

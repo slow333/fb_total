@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>PUT API</h1>
+  <h2>POST과 별반 다르지 않음</h2>
+  <section>
+    <pre>
+@PutMapping("/put-default")
+public String putMethod() {
+  return "Put default";
+}
+@PutMapping("/put-person")
+public String putPerson(@RequestBody Map&lt;String, Object> person) {
+  StringBuilder sb = new StringBuilder();
+  person.forEach((key, value) -> sb.append(key + ":" + value+"\n"));
+  return sb.toString();
+}
+@PutMapping("/put-person2")
+public String putPerson2(@RequestBody PersonDTO personDTO) {
+  return personDTO.toString();
+}
+    </pre>
+    <h2>ResponseEntity 사용하기</h2>
+    <pre>
+@PutMapping("/put-person3")
+public ResponseEntity&lt;PersonDTO> putPerson3(@RequestBody PersonDTO personDTO) {
+  return ResponseEntity.status(HttpStatus.ACCEPTED).body(personDTO);
+}
+    </pre>
+    <h4>HttpStatus를 포함해서 전달할 수 있음(HTTP/1.1 202)</h4>
+  </section>
+  <section>
+    <h2>delete</h2>
+    <pre>
+  @DeleteMapping("/delete/{id}")
+  public String deletePerson(@PathVariable("id") String id) {
+    return id;
+  }
+    </pre>
+  </section>
+  <section>
+    <h2>Test fetch result</h2>
+    <div class="testResult" id="testResult"></div>
+  </section>
+</main>
+<script>
+  let url = "http://localhost:8080/api/v1/test/put-person";
+  let url2 = "http://localhost:8080/api/v1/test/put-person2";
+  let url3 = "http://localhost:8080/api/v1/test/put-person3";
+  let url4 = "http://localhost:8080/api/v1/test/delete/3939";
+  async function fetchTest(url, method) {
+    return await fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name:"KIM",
+        age: 32,
+        email:"cal@com",
+        address: {
+          city: "daejeon",
+          code: "352-06",
+          street: 909
+        }
+      })
+    });
+  }
+  fetchTest(url, 'PUT')
+          .then((hello) => hello.text())
+          .then((response) => testResult.innerHTML += response+"<br>")
+          .catch((error) => console.log(error));
+  fetchTest(url2, "put")
+          .then((hello) => hello.text())
+          .then((response) => testResult.innerHTML += response+"<br>")
+          .catch((error) => console.log(error));
+  fetchTest(url3, 'PUT')
+          .then((hello) => hello.text())
+          .then((response) => testResult.innerHTML += response+"<br>")
+          .catch((error) => console.log(error));
+  fetchTest(url4, 'delete')
+          .then((hello) => hello.text())
+          .then((response) => testResult.innerHTML += response+"<br>")
+          .catch((error) => console.log(error));
+  function test() {
+    return null;
+  }
+</script>
+</body>
+</html>

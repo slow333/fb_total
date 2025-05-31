@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>SELECT</h1>
+
+<h2>SELECT 문법</h2>
+<h3>끝에 \G하면 row 단위로 보여줌</h3>
+<h3>explain; 세부 정보를 보여줌</h3>
+<pre>explain select * from abc\G;</pre>
+<!-- ############## distinct #########################-->
+<h2>SELECT DISTINCT; 중복제거</h2>
+  <pre>SELECT DISTINCT column1, column2 FROM table_name;
+SELECT Count(DISTINCT column1) FROM table_name;</pre>
+<!-- ############## 선택자 #########################-->
+<h2>선택자 종류</h2>
+<PRE style="font-size: 1rem;font-weight: bold;">
+=, >, &lt; , &gt;=, &lt;=
+&lt;&gt; 	Not equal. may be written as !=
+BETWEEN   Between a certain range(inclusive)
+LIKE      Search for a pattern(wildcard: %, _)
+IN        To specify multiple possible values for a column
+LIMIT     Used to specify the number of records to return
+OR, AND, NOT
+IS NULL, IS NOT NULL</PRE>
+<!-- ############## where #########################-->
+<h2>WHERE</h2>
+  <pre>
+SELECT column1, column2 FROM table_name WHERE condition;
+
+SELECT * FROM Customers WHERE Country='Mexico' AND email IS NOT NULL;
+SELECT * FROM Customers WHERE Country='Mexico' AND City='Mexico City';
+SELECT * FROM Customers WHERE Country='Mexico' OR Country='USA';
+SELECT * FROM Customers WHERE Country='Mexico' OR country LIKE 'United%';
+SELECT * FROM Customers WHERE CustomerID &lt; 10;
+-- BETWEEN 시작끝 포함
+SELECT * FROM Customers WHERE CustomerID BETWEEN 10 AND 19; 
+SELECT * FROM Customers WHERE City IN ('Paris','London');</pre>
+<!-- ############## and, or #########################-->
+<h2>AND, OR</h2>
+<pre>
+SELECT * FROM customer
+  WHERE country = 'Germany' AND (name LIKE 'R%' OR name LIKE 'E%');
+SELECT * FROM Customer
+  WHERE City = 'Berlin' OR name LIKE 'G%' OR Country = 'Norway'; </pre>
+<!-- ############## not #########################-->
+<h2>NOT</h2>
+<pre>
+SELECT * FROM customer WHERE NOT country = 'Germany';
+SELECT * FROM customer WHERE country NOT LIKE 'G%';
+SELECT * FROM customer WHERE id NOT BETWEEN 10 AND 22;
+SELECT * FROM customer WHERE city NOT IN('Paris', 'London');
+SELECT country, city FROM customer WHERE city NOT IN('Paris', 'London', 'Tulle') 
+  AND country NOT IN('Germany', 'France');</pre>
+<!-- ############## in #########################-->
+<h2>IN</h2>
+<pre>SELECT * FROM Customers WHERE Country IN ('Germany', 'France', 'UK');</pre>
+<!-- ############## order by #########################-->
+<h2>ORDER BY</h2>
+  <pre>
+SELECT column1, ... FROM table_name ORDER BY column1, column2, ... ASC|DESC;
+SELECT * FROM Customers ORDER BY Country ASC, CustomerName DESC;  
+</pre>
+<!-- ############## null #########################-->
+<h2>NULL</h2>
+<pre>SELECT * FROM Customer WHERE City IS NULL;</pre>
+<pre>SELECT * FROM Customer WHERE City IS NOT NULL;</pre>
+<!-- ############## intersect #########################-->
+<h2>INTERSECT: 공통으로 적용되는 범위를 보여줌</h2>
+<pre>select * from employees where office_id >3 
+intersect 
+select * from employees where salary &lt; 60000;</pre>
+<!-- ############## except #########################-->
+<h2>EXCEPT: 첫번째 쿼리에서 두번째 쿼리의 결과를 제외함</h2>
+<pre>select * from employees where office_id > 3 
+except
+select * from employees where salary &lt; 60000;</pre>
+<!-- ############## limit #########################-->
+<h2>LIMIT</h2>
+<pre>SELECT * FROM Customers LIMIT 5; -- 처음 5개만
+SELECT * FROM Customers OFFSET 10 LIMIT 5; -- 11번째부터 5개
+SELECT * FROM Customers 5, 10; -- 6번째부터 10개</pre>
+
+<!-- ############## sub query        #########################-->
+<h1>Subquery</h1>
+<h3>Subquery는 쿼리 안에 또 다른 쿼리를 넣는 것</h3>
+<pre>SELECT column_name(s) FROM table_name
+WHERE column_name operator
+  (SELECT column_name FROM table_name WHERE condition);</pre>
+<h3>Subquery는 SELECT, INSERT, UPDATE, DELETE 문에서 사용 가능</h3>
+<pre> SELECT first_name, last_name, salary FROM employees 
+  WHERE salary &gt; (SELECT AVG(salary) from employees);</pre>
+<pre>
+  SELECT first_name, last_name FROM employees 
+  WHERE employee_id IN
+  (SELECT DISTINCT customer_id FROM transactions
+  WHERE customer_id IS NOT NULL);</pre>
+
+
+<!-- ############## exists, any, all #########################-->
+<h1>EXISTS</h1>
+<h3>if true return value</h3>
+<h3>The EXISTS operator is used to test for the existence of any record in a subquery.</h3>
+<pre>SELECT column_name(s) FROM table_name
+WHERE EXISTS (SELECT column_name(s) FROM table_name WHERE condition);</pre>
+<pre>SELECT SupplierName FROM suppliers
+WHERE EXISTS (SELECT name FROM product 
+  WHERE product.supplierID = suppliers.supplierID
+  AND Price &lt; 20 );</pre>
+
+<h1>ANY</h1>
+<pre>SELECT ProductName FROM Products
+WHERE ProductID = ANY
+  (SELECT ProductID FROM OrderDetails
+  WHERE Quantity = 10); </pre>
+<pre>SELECT name FROM product
+  WHERE id = ANY 
+  ( SELECT id FROM orders WHERE quantity &lt; 4);</pre>
+
+
+<h1>ALL</h1>
+<pre>SELECT name FROM product
+  WHERE id = ALL 
+  ( SELECT order_id FROM orders WHERE quantity &lt; 14);</pre>  
+<script>
+  // function test() {
+  //   alert('test');
+  // }
+  // test();
+</script>
+</main>
+</body>
+</html>

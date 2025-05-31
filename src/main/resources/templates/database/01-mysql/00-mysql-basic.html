@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>SQL 기본(MySql 기준으로 함</h1>
+<h2>Mysql 설치기 기존에 mariadb에서 3306을 사용하고 있어 3305로 변경</h2>
+  <h3>Mysql terminal, mysqlsh 사용 방법</h3>
+  <pre>cmd창에서
+  mysqlsh --sql  root@localhost:3305/mydb
+    cmd  option   id   ip       port  db 
+  -- port를 지정안하면 virtual port 33060을 사용, import를 할려면 이렇게 접속해야함        
+  mysqlsh --sql  root@localhost/mydb
+    cmd   option   id   ip       db                           
+  또는 mysqlsh
+  \c mysqlx://root:1111@localhost/mydb
+  \connect root@localhost:3305; // 주소 : 포트 // 암호입력 필요
+  \sql // sql 모드로 변경, ctr + C 로 종료
+  \js // JavaScript 모드로 변경
+  \py // Python 모드로 변경
+  \s , \status // 현재 세션 정보 출력
+  </pre>
+  <h3>session collections</h3>
+  <pre> mysqlsh mode
+  session.createSchema('test_schema')
+  db.createCollection('test_collection')
+  db.getCollections()
+  // import json file
+  util.importJson('path/to/file.json', 
+      {schema: 'test_schema', collection: 'test_collection'})
+  \u test_schema 
+  db.test_conllection.find().limit(10) // test_collection에서 10개만 출력
+</pre>
+
+<h2>ROLL BACK; 바로 전 명령을 취소</h2>
+  <pre>
+  SET AUTOCOMMIT = OFF; -- 자동 커밋을 끔
+  COMMIT;
+  DELETE FROM table_name WHERE condition; -- 삭제
+  ROLLBACK; -- 바로 전 명령을 취소
+  COMMIT;
+  UPDATE car SET price = 10000 WHERE id = 1; -- 가격을 10000으로 변경
+  ROLLBACK; -- 바로 전 명령을 취소
+  </pre>
+
+<h2>기본 문법</h2>
+  <ul>
+    <li>대소문자를 구분하지 않음</li>
+    <li>mysql, oracle, postgreSQL 등 조금씩 다름</li>
+    <li>기본적으로 CREATE, INSERT INTO, ALTER, SELECT, UPDATE, DELETE, WHERE</li>
+    <li>SELECT - extracts data from a database</li>
+    <li>UPDATE - updates data in a database</li>
+    <li>DELETE - deletes data from a database</li>
+    <li>INSERT INTO - inserts new data into a database</li>
+    <li>CREATE DATABASE - creates a new database </li>
+    <li>ALTER DATABASE - modifies a database</li>
+    <li>CREATE TABLE - creates a new table</li>
+    <li>ALTER TABLE - modifies a table</li>
+    <li>DROP TABLE - deletes a table</li>
+    <li>CREATE INDEX - creates an index (search key)</li>
+    <li>DROP INDEX - deletes an index</li>
+  </ul>
+
+  
+<h2>Data Type</h2>
+  <h3>숫자 데이터 형식</h3>
+  <p>
+    MySQL은 숫자형 데이터 타입을 정수형, 부동소수점형, 고정소수점형으로 나눌 수 있습니다.
+    정수형은 BIT, TINYINT, SMALLINT, MEDIUMINT, INT, BIGINT가 있습니다.
+    부동소수점형은 FLOAT, DOUBLE, REAL이 있습니다.
+    고정소수점형은 DECIMAL과 NUMERIC이 있습니다.
+  </p>
+  <pre>
+데이터 타입   바이트 수   숫자 범위     설명
+BIT(N)        N/8                   1 ~ 64bit를 표현합니다.
+                                  b'0000' 과 같이 표현
+TINYINT       1       -128 ~ 127              정수
+SMALLINT      2       -32,768 ~ 32,767        정수
+MEDIUMINT     3       -8,388,608 ~ 8,388,607  정수
+INT, INTEGER  4       -21억 ~ +21억          정수
+BIGINT        8       -900경 ~ +900경        정수
+FLOAT         4       -3.40E+38 ~ -1.17E-38   소수점 아래 7자리까지 표현
+DOUBLEREAL    8       1.22E-308 ~ 1.79E+308   소수점 아래 15자리까지 표현
+DECIMAL(m, [d])  5 ~ 17  -1038+1 ~ +1038-1 
+NUMERIC(m, [d])         전체 자릿수(m)와 소수점 이하 자릿수(d)를 가진 숫자형
+                        예) decimal(5, 2)는 자릿수 5자리로 하되 소숫점 이하를 2자리로 합니다.
+                        >> 673.21 </pre>
+<h3>문자 데이터 형식</h3>
+  <p>
+  VARCHAR은 UTF-8의 형태를 지니므로 입력한 글자의 언어에 따라 내부적으로 크기가 달라집니다.
+  따라서 CHAR(100)은 한글 영어 상관 없이 100글자를 의미합니다.
+  BLOB(Binary Large Object)는 사진, 동영상, 문서 파일 등의 대용량 이진 데이터를 저장하는데 사용합니다.
+  </p>
+  <pre>
+데이터 타입     바이트 수     설명
+CHAR(n)       1 ~ 255      고정길이 문자형. 
+    n을 1부터 255까지 지정.CHARACTER의 약자이며, 
+    CHAR 이라고만 하면 CHAR(1)과 동일 CHAR(100) 인 경우 
+    세 자리만 사용해도 나머지 97 자리를 할당.성능은 CHAR이 VARCHAR보다 더 좋음.
+VARCHAR(n)    1 ~ 65535
+    가변길이 문자형. 
+    n을 사용하면 1부터 65535까지 지정 Variable Character의 약자
+    VRCHAR(100) 인 경우 3글자를 저장하는 경우 3자리의 데이터 공간만 사용
+BINARY(n)     1 ~ 255
+    고정길이 이진 데이터 값
+VARBINARY(n)  1 ~ 255
+    가변길이 이진 데이터 값
+[ TEXT ]
+  TINYTEXT    1 ~ 255         255 크기의 TEXT 데이터 값
+  TEXT        1 ~ 65535       N 크기의 TEXT 데이터 값
+  MEDIUMTEXT  1 ~ 16777215    16777215 크기의 TEXT 데이터 값
+  LONGTEXT    1 ~ 4294967295  최대 4GB 크기의 TEXT 데이터 값
+[ BLOB ]
+  TINYBLOB    1 ~ 255         255 크기의 BLOB 데이터 값
+  BLOB        1 ~ 65535       N 크기의 BLOB 데이터 값
+  MEDIUMBLOB  1 ~ 16777215    16777215 크기의 BLOB 데이터 값
+  LONGBLOB    1 ~ 4294967295  최대 4GB 크기의 BLOB 데이터 값
+[ ENUM(값들..) ]
+  1 또는 2  ENUM은 열거형으로서, 최대 65535개의 열거형 데이터 값을 가질 수 있습니다.
+[ SET(값들..) ]
+  1, 2, 3, 4, 8  SET은 집합형으로서, 최대 64개의 중복되지 않는 데이터 값을 가질 수 있습니다.
+  </pre>
+<h3>날짜와 시간 데이터 형식</h3>
+  <pre>
+데이터 형식  바이트수  설명
+DATE         3     YYYY-MM-DD(1000-01-01 ~ 9999-12-31)
+TIME         3     HH:MM:SS(-838:59:59.000000 ~ 838:59:59.000000)
+DATETIME     8     YYYY-MM-DD HH:MM:SS(1001-01-01 00:00:00 ~ 9999-12-31 23:59:59)
+TIMESTAMP    4     YYYY-MM-DD HH:MM:SS(1970-01-01 00:00:01 UTC ~ 2038-01-19 03:14:07 UTC)
+                   TIMESTAMP는 시스템 변수와 관련이 있으며 UTC 시간대로 변환하여 저장. 
+YEAR         1     YYYY(1901 ~ 2155) 
+                   time_zone 시스템 변수와 관련이 있으며 UTC 시간대로 변환하여 저장. </pre>
+<h3>날짜 등 추출 하기</h3>
+<pre>SELECT EXTRACT(YEAR FROM '2023-09-22 22:32:22') AS YEAR; -- 2023
+  SELECT YEAR('2023-09-22 22:32:22') AS YEAR; -- 2023</pre>
+
+<H1>기본 명령어</H1>
+  <pre>SELECT VERSION(), CURRENT_DATE, USER();</pre>
+  <pre> -- version 5.7 까지
+  GRANT ALL PRIVILEGES ON mydb.* TO slow33@% IDENTIFIED BY '1234';</pre>
+  <pre> -- version 8 부터, user 생성과 권한설정을 따로 해야함.
+  CREATE USER slow33@'%' IDENTIFIED BY '1234';
+  GRANT ALL PRIVILEGES ON mydb.* TO slow33@'%' with grant option;</pre>
+</main>
+</body>
+</html>

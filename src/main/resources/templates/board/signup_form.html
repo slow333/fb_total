@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+  <script defer type="text/javascript" th:src="@{/js/menu/loadNav_noNav.js}"></script>
+</head>
+<body>
+<nav th:replace="~{board/utils/navbar :: navbarFragment}"></nav>
+<main class="nosub" style="height: 90vh;">
+  <div class="login-signup">
+    <h1>회원 가입 페이지</h1>
+    <form th:action="@{|/board/signup|}"
+          th:object="${userForm}"
+          method="post" class="subscribe-form">
+      <div th:replace="~{board/utils/form_errors :: formErrorsFragment}"></div>
+
+      <div>username : <br>
+        <input type="text" id="username" th:field="*{username}"
+               placeholder="username">
+      </div>
+      <div>패스워드 : <br>
+        <input type="password" th:field="*{password}" placeholder="password">
+      </div>
+      <div>패스워드(다시입력) :<br>
+        <input type="password" name="passwordCheck" placeholder="password 확인">
+      </div>
+      <div>email : <br>
+        <input type="text" id="email" th:field="*{email}"
+               placeholder="email">
+      </div>
+      <div>
+        <input type="submit" value="SUBMIT" class="submit-btn">
+      </div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

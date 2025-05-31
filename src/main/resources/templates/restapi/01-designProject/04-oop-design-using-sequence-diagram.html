@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/js/menu/loadNav.js"></script>
+</head>
+<body>
+<main>
+<h1>oop design using sequence diagram</h1>
+<pre>
+        Artifact                                      Wizard
+     --------------                               --------------
+     id                                           id
+     name            0 ~ n  _________  0 ~ 1      name
+     description     ownedArtifact __ owner
+     imageUrl
+                     wizard는 0~n개의 artifact를 갖고
+                     artifact는 0~1개의 wizard를 갖음
+</pre>
+<h2>Sequence Diagram</h2>
+    <img src="/images/Object-interaction-in-a-sequence-diagram.png" alt="Object-interaction-in-a-sequence-diagram"
+    width="90%">
+    <h3>url 별로 패키지를 생성함</h3>
+    <h3>package: artifact</h3>
+    <h4>controller(@Controller), service(@Service @Transaction 을 추가), repository(@Repository, interface)</h4>
+    <h4>controller에서는 apiResponse를 답으로 돌려줌(Result 객체)</h4>
+    <pre>Result class 생성
+    public class Result {
+        private boolean flag; // true ; success
+        private Integer code; // 400 ; error, 200; success
+        private String message; // error message(e.g., "Find all success")
+        private Object data; // The response payload
+        public Result(){};
+        public Result( ... ){ ... };
+    }
+    </pre>
+    <h4>StatusCode를 만듦</h4>
+    <pre>
+    public class StatusCode {
+        // http error code를 정의: 기본 HttpStatusCode을 사용해도 되나 개발자에 따라 요구가 다를 수 있으므로 정의해서 사용
+        // Spring has a HttpStatus class
+        public static final int SUCCESS = 200;
+        public static final int INVALID_ARGUMENT = 400;
+        ...
+        public static final int NOT_FOUND = 404;
+
+    }
+    </pre>
+    <h4>public interface ArtifactRepository extends JpaRepository[Artifact, String]</h4>
+    <h4>JpaRepository는 ListCrudRepository, ListPagingAndSortRepository를 상속함</h4>
+    <h4>db query에 필요한 CRUD를 사전 정의하고 있음</h4>
+    <h4>https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html</h4>
+    <pre>
+     Optional[Artifact] findByIdAndNameAndDescription(String id, String name, String Description);
+     이 외에도 굉장히 많이 있음. 찾아서 참고
+     // query를 직접 적을 수도 있음
+     @Query("select u from User u where u.emailAddress = ?1", nativeQuery = true)
+     User findByEmailAddress(String emailAddress);
+    // @Query 옵션에서 nativeQuery = true를 줘야지만... DB에서 쿼리문을 작성하는 방식으로 작성할 수 있음
+     // ?를 통한 경우 -> parameter의 위치에 따른 숫자를 넣어주면 된다.
+     // ?1 -> parameter 첫번째 자리에 있는걸 넣겠다는 뜻.
+      @Query("select u from User u where u.firstname = :firstname or u.lastname = :lastname")
+      User findByLastnameOrFirstname(String lastname, String firstname); //이렇게도 사용 가능하다.
+     // 여기서 정의한 이름(lastname, firstname은 class에서 정의한 객체와 이름이 같아야함)
+    </pre>
+    <h3>system package를 만들어서 기타 등등을 저장함</h3>
+    <h3>security 생성</h3>
+    <h3>외부 api를 위한 client package 생성</h3>
+</main>
+</body>
+</html>
