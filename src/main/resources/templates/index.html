@@ -71,6 +71,19 @@ ToString 만들기 : alt + shift + s 누르고 s => Generate
   <h2>인텔리제이 단축키</h2>
   <h3>shift + F6 ; 전체 단어 선택 후 한번에 교체하기</h3>
   <h3>alt + shift ; 한줄 이동</h3>
+  <h2>git</h2>
+  <h3>뭔가 꼬이면 초기화</h3>
+  <pre>rm -rf .git
+    git을 새로 만들어서 새로 올림.
+    
+echo "# tttt" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:slow333/tttt.git
+git push -u origin main
+  </pre>
 </div>
 </body>
 </html>

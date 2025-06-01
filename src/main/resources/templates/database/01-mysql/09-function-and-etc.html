@@ -25,9 +25,8 @@ CALL procedure_name('value1', @output);
 DELIMITER $$
 CREATE PROCEDURE procedure_name (IN param1 datatype, OUT param2 datatype)
 BEGIN
-    -- SQL statements
-    SELECT * FROM table_name WHERE column_name = param1;
-    SET param2 = (SELECT COUNT(*) FROM table_name WHERE column_name = param1);
+  SELECT * FROM table_name WHERE column_name = param1;
+  SET param2 = (SELECT COUNT(*) FROM table_name WHERE column_name = param1);
 END $$
 DELIMITER ;
 CALL procedure_name('value1', @output);
@@ -35,8 +34,7 @@ CALL procedure_name('value1', @output);
 DELIMITER $$
 CREATE PROCEDURE find_customer (IN id INT)
 BEGIN
-    -- SQL statements
-    SELECT * FROM customers WHERE customer_id = id;
+  SELECT * FROM customers WHERE customer_id = id;
 END $$
 DELIMITER ;
 CALL find_customer(1); -- 프로시저 호출
@@ -44,12 +42,10 @@ CALL find_customer(1); -- 프로시저 호출
 DELIMITER $$
 CREATE PROCEDURE find_customer_full_name (IN f_name VARCHAR(50), IN l_name VARCHAR(50))
 BEGIN
-    -- SQL statements
-    SELECT * FROM customers where first_name = f_name AND last_name = l_name;
+  SELECT * FROM customers where first_name = f_name AND last_name = l_name;
 END $$
 DELIMITER ;
 CALL find_customer_full_name("abc", "cde"); -- 프로시저 호출
-
 
 DROP PROCEDURE IF EXISTS procedure_name; -- 프로시저 삭제
 </pre>
@@ -59,14 +55,12 @@ DROP PROCEDURE IF EXISTS procedure_name; -- 프로시저 삭제
 <pre>
 SHOW TRIGGERS; -- 트리거 목록 보기
 DROP TRIGGER IF EXISTS trigger_name; -- 트리거 삭제
--- --------------------------------------
--- 트리거 생성
+-- ########## 트리거 생성 #############
 CREATE TRIGGER trigger_name
 BEFORE|AFTER INSERT|UPDATE|DELETE ON table_name
 FOR EACH ROW
 BEGIN
-    -- SQL statements
-    INSERT INTO log_table (action, action_time) VALUES ('insert', NOW());
+  INSERT INTO log_table (action, action_time) VALUES ('insert', NOW());
 END;  
 </pre>
 <pre>--exercise
@@ -75,13 +69,12 @@ END;
   AFTER hourly_pay;
   UPDATE employees
   SET salary = hourly_pay * 40 * 4; -- 월급으로 변환
-
-  -- update 트리거 생성 hourly_pay가 변경되면 salary도 변경되도록 함
+  -- ########## 트리거 생성 hourly_pay가 변경되면 salary도 변경되도록 함
   CREATE TRIGGER before_hourly_pay_update
   BEFORE UPDATE ON employees
   FOR EACH ROW
     SET NEW.salary = NEW.hourly_pay * 40 * 4; -- 월급으로 변환
-   -- insert 트리거 생성 hourly_pay가 변경되면 salary도 변경되도록 함    
+  -- ########## 트리거 생성 hourly_pay가 변경되면 salary도 변경되도록 함    
   CREATE TRIGGER before_hourly_pay_insert
   BEFORE INSERT ON employees
   FOR EACH ROW
@@ -92,29 +85,29 @@ END;
 <h3>예제</h3>
 <pre>
 CREATE TABLE IF NOT EXISTS expenses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    expense_name varchar(20),
-    expense_total INT
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  expense_name varchar(20),
+  expense_total INT
 );
 UPDATE expenses 
   SET expense_total = (SELECT SUM(salary) FROM employees) 
   WHERE expense_name = "salaries";
--- --------------------------------------
--- 행이 추가허면 업데이트 하는 트리거
+-- ########## 행이 추가허면 업데이트 하는 트리거
 CREATE TRIGGER after_salary_insert_expense_total
 AFTER INSERT ON employees
 FOR EACH ROW
   UPDATE expenses 
   SET expense_total = expense_total + NEW.salary 
   WHERE expense_name = "salaries";
--- --------------------------------------
--- 행이 삭제하면 업데이트 하는 트리거 생성
+
+-- ########## 행이 삭제하면 업데이트 하는 트리거 생성
 CREATE TRIGGER after_salary_delete_expense_total
 AFTER DELETE ON employees -- BEFORE로 하면 삭제된 행이 없어서 에러 발생
 FOR EACH ROW
   UPDATE expenses 
   SET expense_total = expense_total - OLD.salary -- OLD.salary는 삭제되는 행의 salary
   WHERE expense_name = "salaries";
+
 -- --------------------------------------
 -- update해서 값이 변경되었을 때  
 CREATE TRIGGER after_salary_update_expense_total
@@ -145,11 +138,15 @@ SELECT CONCAT('Hello', ' ', 'World!', 123); -- 'Hello World!123'</pre>
 <h2>replace</h2>
 <pre>SELECT REPLACE('Hello World!', 'World', 'MySQL'); -- 'Hello MySQL!'</pre>
 
-<h2>upper</h2>
-<pre>SELECT UPPER('Hello World!'); -- 'HELLO WORLD!'</pre>
+<h2>instr, locate: index of string</h2>
+<pre>SELECT INSTR('Hello World!', 'World'); -- 7 (찾은 문자열의 시작 위치)
 
-<h2>lower</h2>
-<pre>SELECT LOWER('Hello World!'); -- 'hello world!'</pre>
+SELECT LOCATE('World', 'Hello World!'); -- 7 (찾은 문자열의 시작 위치)
+SELECT LOCATE('World', 'Hello World!', 8); -- 0 (8번째 이후에 찾지 못함)</pre>
+
+<h2>upper, lower</h2>
+<pre>SELECT UPPER('Hello World!'); -- 'HELLO WORLD!'
+SELECT LOWER('Hello World!'); -- 'hello world!'</pre>
 
 <h2>length</h2>
 <pre>SELECT LENGTH('Hello World!'); -- 13</pre>
@@ -158,15 +155,16 @@ SELECT CONCAT('Hello', ' ', 'World!', 123); -- 'Hello World!123'</pre>
 <pre>SELECT IF(1 &gt; 0, 'True', 'False'); -- 'True'
 SELECT IF(1 &gt; 2, 'True', 'False'); -- 'False'</pre>
 
+<h2>Left pad, Right pad</h2>
+<pre>SELECT LPAD('Hello', 10, '*'); -- '*****Hello'
+SELECT RPAD('Hello', 10, '*'); -- 'Hello*****'</pre>
+
 <h2>case</h2>
 <pre>SELECT CASE 
-      WHEN 1 &gt; 0 THEN 'True' 
-      ELSE 'False' 
-  END; -- 'True'
-SELECT CASE 
-      WHEN 1 &gt; 2 THEN 'True' 
-      ELSE 'False' 
-  END; -- 'False'</pre>
+  WHEN 1 &gt; 0 THEN 'True' ELSE 'False' END; -- 'True'
+SELECT CASE WHEN 1 &gt; 2 
+  THEN 'True' ELSE 'False' 
+END; -- 'False'</pre>
 
 <h2>coalesce</h2>
 <pre>SELECT COALESCE(NULL, 'Hello', 'World'); -- 'Hello'
@@ -181,12 +179,11 @@ SELECT IFNULL('Hello', 'World'); -- 'Hello'</pre>
 <pre>SELECT NULLIF('Hello', 'Hello'); -- NULL
 SELECT NULLIF('Hello', 'World'); -- 'Hello'</pre>
 
-<h2>greatest; 여러 값 중 가장 큰 값</h2>
-<pre>SELECT GREATEST(1, 2, 3); -- 3</pre>
+<h2>greatest, least</h2>
+<pre>SELECT GREATEST(1, 2, 3); -- 3
+SELECT LEAST(1, 2, 3); -- 1</pre>
 
-<h2>least; 여러 값 중 가장 작은 값</h2>
-<pre>SELECT LEAST(1, 2, 3); -- 1</pre>
-
+<!--*********** 수학 함수 ******************-->
 <h1>수학 함수</h1>
 <h2>format; 숫자를 지정된 형식으로 포맷</h2>
 <pre>SELECT FORMAT(1234567.89, 2); -- '1,234,567.89'</pre>
@@ -197,6 +194,13 @@ SELECT ROUND(123.4567); -- 123
 FLOOR(i + RAND() * (J - I); -- I와 J 사이의 정수
 update car set car.customer_id = FLOOR(rand()*10 + 1); -- 1~ 10의 값</pre>
 
+<h2>rand; 랜덤 숫자 생성</h2>
+<pre>SELECT RAND(); -- 0과 1 사이의 랜덤 숫자
+SELECT RAND(123); -- 123을 시드로 사용하여 랜덤 숫자 생성</pre>
+
+<h2>pi; 원주율 반환</h2>
+<pre>SELECT PI(); -- 3.141592653589793</pre>
+
 <h2>ceil; 숫자를 올림</h2>
 <pre>SELECT CEIL(123.4567); -- 124
 SELECT CEIL(-123.4567); -- -123</pre>
@@ -204,6 +208,10 @@ SELECT CEIL(-123.4567); -- -123</pre>
 <h2>floor; 숫자를 내림</h2>
 <pre>SELECT FLOOR(123.4567); -- 123
 SELECT FLOOR(-123.4567); -- -124</pre>
+
+<h2>mod; 나머지 연산</h2>
+<pre>SELECT MOD(10, 3); -- 1
+SELECT 7 $ 2; -- 1</pre>
 
 <h2>abs; 절대값</h2>
 <pre>SELECT ABS(-123.4567); -- 123.4567
@@ -214,16 +222,16 @@ SELECT ABS(123.4567); -- 123.4567</pre>
 SELECT SIGN(0); -- 0
 SELECT SIGN(123.4567); -- 1</pre>
 
-<h2>rand; 랜덤 숫자 생성</h2>
-<pre>SELECT RAND(); -- 0과 1 사이의 랜덤 숫자
-SELECT RAND(123); -- 123을 시드로 사용하여 랜덤 숫자 생성</pre>
+<h2>convert: cast type</h2>
+<pre>SELECT CONVERT('123.4567', DECIMAL(10, 2)); -- 123.46
+SELECT CAST('123.4567' AS DECIMAL(10, 2)); -- 123.46
+SELECT CONVERT('2023-10-01', DATE); -- '2023-10-01'
+SELECT CAST('2023-10-01' AS DATE); -- '2023-10-01'
+SELECT CONVERT('01', DECIMAL); -- INT는 안됨
+SELECT CAST(003 AS CHAR); -- '3'
+SELECT '01' = '1', CONVERT('01', DECIMAL) = CONVERT('1', DECIMAL);</pre>
 
-<h2>pi; 원주율 반환</h2>
-<pre>SELECT PI(); -- 3.141592653589793</pre>
 
-<h2>mod; 나머지 연산</h2>
-<pre>SELECT MOD(10, 3); -- 1
-SELECT MOD(10, 2); -- 0</pre>
 <!--*********** 시스템 함수 관련 ******************-->
 <h1>시스템 함수</h1>
 <h2>version; MySQL 버전 반환</h2>
@@ -240,6 +248,7 @@ SELECT MOD(10, 2); -- 0</pre>
 
 <h2>schema; 현재 스키마 반환</h2>
 <pre>SELECT SCHEMA(); -- 현재 스키마 반환</pre>
+
 <!--*********** 시간, 날짜 함수 관련 ******************-->
 <h1>DATE, TIME</h1>
 <h2>now</h2>
@@ -258,7 +267,7 @@ SELECT CURRENT_TIME; -- 현재 시간 반환</pre>
 <h2>date_format</h2>
 <pre>SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'); -- '2023-10-01 12:34:56'</pre>
 
-<h2>current_timestamp; 현재 날짜와 시간 반환</h2>
+<h2>current_timestamp; 현재 날짜와 시간 반환, 시간대 표시 가능</h2>
 <pre>SELECT CURRENT_TIMESTAMP(); -- 현재 날짜와 시간 반환
 SELECT CURRENT_TIMESTAMP; -- 현재 날짜와 시간 반환
 SELECT TIMESTAMP(NOW()); -- 현재 날짜와 시간 반환
@@ -272,7 +281,7 @@ SELECT SYSDATE; -- 현재 날짜와 시간 반환</pre>
 <pre>SELECT DATE('2023-10-01 12:34:56') / TIME('2023-10-01 12:34:56') 
   / YEAR('2023-10-01 12:34:56') / MONTH('2023-10-01 12:34:56') / DAY('2023-10-01 12:34:56') 
   / HOUR('2023-10-01 12:34:56') / MINUTE('2023-10-01 12:34:56') / SECOND('2023-10-01 12:34:56');
-   -- '2023-10-01' / '12:34:56' / 2023 / 10 / 1 / 12 / 34 / 56
+  -- '2023-10-01' / '12:34:56' / 2023 / 10 / 1 / 12 / 34 / 56
 
 SELECT DATE(NOW()) / TIME(NOW()) / YEAR(NOW()) / MONTH(NOW()) / DAY(NOW()) 
   / HOUR(NOW()) / MINUTE(NOW()) / SECOND(NOW()); 
@@ -312,8 +321,7 @@ SELECT FROM_UNIXTIME(1696129200); -- 특정 유닉스 타임스탬프를 날짜�
 <h2>utc_time; UTC 시간 반환</h2>
 <pre>SELECT UTC_TIME(); -- UTC 시간 반환</pre>
 
-
-<h1>SELECT INTO; 복사해서 새로운 테이블로 만듦</h1>
+<h1>복사해서 새로운 테이블로 만듦</h1>
 <pre>-- 이거는 안됨
 SELECT * INTO CustomersBackup2017
   SELECT * FROM Customers;</pre>
