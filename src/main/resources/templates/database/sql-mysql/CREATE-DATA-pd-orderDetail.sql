@@ -1,14 +1,14 @@
-CREATE TABLE IF NOT EXISTS order_detail (
-    id BIGINT AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS orderDetail (
+    orderDetail_id BIGINT AUTO_INCREMENT,
     order_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
+    PRIMARY KEY (orderDetail_id)
     );
-INSERT INTO order_detail (order_id, product_id, quantity, price) VALUES
+INSERT INTO orderDetail (order_id, product_id, quantity, price) VALUES
     (1, 1, 2, 19.99),
     (1, 2, 1, 29.99),
     (2, 3, 3, 39.99),

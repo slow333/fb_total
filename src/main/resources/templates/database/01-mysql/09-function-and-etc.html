@@ -151,37 +151,35 @@ SELECT LOWER('Hello World!'); -- 'hello world!'</pre>
 <h2>length</h2>
 <pre>SELECT LENGTH('Hello World!'); -- 13</pre>
 
-<h2>if</h2>
-<pre>SELECT IF(1 &gt; 0, 'True', 'False'); -- 'True'
-SELECT IF(1 &gt; 2, 'True', 'False'); -- 'False'</pre>
-
 <h2>Left pad, Right pad</h2>
 <pre>SELECT LPAD('Hello', 10, '*'); -- '*****Hello'
 SELECT RPAD('Hello', 10, '*'); -- 'Hello*****'</pre>
-
-<h2>case</h2>
-<pre>SELECT CASE 
-  WHEN 1 &gt; 0 THEN 'True' ELSE 'False' END; -- 'True'
-SELECT CASE WHEN 1 &gt; 2 
-  THEN 'True' ELSE 'False' 
-END; -- 'False'</pre>
 
 <h2>coalesce</h2>
 <pre>SELECT COALESCE(NULL, 'Hello', 'World'); -- 'Hello'
 SELECT COALESCE(NULL, NULL, 'World'); -- 'World'
 SELECT COALESCE(NULL, NULL, NULL); -- NULL</pre>
 
-<h2>ifnull; 첫번째가 null이면 다음값, 아니면 그냥 값</h2>
+<!--*********** 조건 절 ******************-->
+<h1>조건 절</h1>
+<h2>if: 2가지 선택 </h2>
+<pre>SELECT IF(1 &gt; 0, '참입니다.', '거짓입니다.');</pre>
+
+<h2>case: 2가지 이상의 경우에...</h2>
+<pre>SELECT CASE WHEN 1 &gt; 0 THEN 'True' ELSE 'False' END; -- 'True'
+SELECT CASE 
+  WHEN 가격 &gt; 30 THEN '비싸요' 
+  WHEN 가격 &lt;= 30 THEN '저렴해요' 
+  ELSE '가격 정보 없음'
+END;</pre>
+
+<h2>ifnull; null 일때 기본값 지정</h2>
 <pre>SELECT IFNULL(NULL, 'Hello'); -- 'Hello'
 SELECT IFNULL('Hello', 'World'); -- 'Hello'</pre>
 
 <h2>nullif: 2개의 값이 같으면 null, 아니면 첫번째 값</h2>
 <pre>SELECT NULLIF('Hello', 'Hello'); -- NULL
 SELECT NULLIF('Hello', 'World'); -- 'Hello'</pre>
-
-<h2>greatest, least</h2>
-<pre>SELECT GREATEST(1, 2, 3); -- 3
-SELECT LEAST(1, 2, 3); -- 1</pre>
 
 <!--*********** 수학 함수 ******************-->
 <h1>수학 함수</h1>
@@ -222,6 +220,10 @@ SELECT ABS(123.4567); -- 123.4567</pre>
 SELECT SIGN(0); -- 0
 SELECT SIGN(123.4567); -- 1</pre>
 
+<h2>greatest, least</h2>
+<pre>SELECT GREATEST(1, 2, 3); -- 3
+SELECT LEAST(1, 2, 3); -- 1</pre>
+
 <h2>convert: cast type</h2>
 <pre>SELECT CONVERT('123.4567', DECIMAL(10, 2)); -- 123.46
 SELECT CAST('123.4567' AS DECIMAL(10, 2)); -- 123.46
@@ -230,7 +232,6 @@ SELECT CAST('2023-10-01' AS DATE); -- '2023-10-01'
 SELECT CONVERT('01', DECIMAL); -- INT는 안됨
 SELECT CAST(003 AS CHAR); -- '3'
 SELECT '01' = '1', CONVERT('01', DECIMAL) = CONVERT('1', DECIMAL);</pre>
-
 
 <!--*********** 시스템 함수 관련 ******************-->
 <h1>시스템 함수</h1>
@@ -251,82 +252,57 @@ SELECT '01' = '1', CONVERT('01', DECIMAL) = CONVERT('1', DECIMAL);</pre>
 
 <!--*********** 시간, 날짜 함수 관련 ******************-->
 <h1>DATE, TIME</h1>
-<h2>now</h2>
-<pre>SELECT NOW(); -- 현재 날짜와 시간</pre>
-
-<h2>curdate</h2>
-<pre>SELECT CURDATE(); -- 현재 날짜
-SELECT CURRENT_DATE(); -- 현재 날짜 반환
-SELECT CURRENT_DATE; -- 현재 날짜 반환</pre>
-
-<h2>curtime</h2>
-<pre>SELECT CURTIME(); -- 현재 시간
-SELECT CURRENT_TIME(); -- 현재 시간 반환
-SELECT CURRENT_TIME; -- 현재 시간 반환</pre>
+<pre>
+CURDATE(), CURRENT_DATE(), CURRENT_DATE; -- 현재 날짜 반환
+CURTIME(), CURRENT_TIME(), CURRENT_TIME; -- 현재 시간 반환
+NOW(), CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP; -- 현재 날짜와 시간 반환
+SYSDATE(), SYSDATE; -- 현재 날짜와 시간 반환
+</pre>
 
 <h2>date_format</h2>
 <pre>SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s'); -- '2023-10-01 12:34:56'</pre>
 
-<h2>current_timestamp; 현재 날짜와 시간 반환, 시간대 표시 가능</h2>
-<pre>SELECT CURRENT_TIMESTAMP(); -- 현재 날짜와 시간 반환
-SELECT CURRENT_TIMESTAMP; -- 현재 날짜와 시간 반환
-SELECT TIMESTAMP(NOW()); -- 현재 날짜와 시간 반환
+<h2>날짜 관련 데이터 추출하기</h2>
+<pre>DATE | TIME | YEAR | MONTH | DAY = DAYOFMONTH('2023-10-01 12:34:56')
+  DATENAME | MONTHNAME | WEEKDAY ('2023-10-01 12:34:56')
+  HOUR | MINUTE | SECOND('2023-10-01 12:34:56');
+-- 현재 날짜, 시간, 년, 월, 일, 시, 분, 초 반환
+DATE(NOW()) / TIME(NOW()) / YEAR(NOW()) / MONTH(NOW()) / DAY(NOW()) 
+/ HOUR(NOW()) / MINUTE(NOW()) / SECOND(NOW());
+
+CONCAT_WS(' ', DATE(NOW()), TIME(NOW())); -- '2023-10-01 12:34:56'
 </pre>
 
-<h2>sysdate; 현재 날짜와 시간 반환</h2>
-<pre>SELECT SYSDATE(); -- 현재 날짜와 시간 반환
-SELECT SYSDATE; -- 현재 날짜와 시간 반환</pre>
+<h2>EXTRACT ; 날짜에서 특정 부분 추출</h2>
+<pre>EXTRACT(YEAR|MONTH|DAY FROM '2023-10-01');</pre>
 
-<h2>날짜 관련 데이터 추출하기</h2>
-<pre>SELECT DATE('2023-10-01 12:34:56') / TIME('2023-10-01 12:34:56') 
-  / YEAR('2023-10-01 12:34:56') / MONTH('2023-10-01 12:34:56') / DAY('2023-10-01 12:34:56') 
-  / HOUR('2023-10-01 12:34:56') / MINUTE('2023-10-01 12:34:56') / SECOND('2023-10-01 12:34:56');
-  -- '2023-10-01' / '12:34:56' / 2023 / 10 / 1 / 12 / 34 / 56
+<h2>차이 계산</h2>
+<pre>SELECT DATEDIFF('2023-10-01', '2023-09-01'); -- 30
+SELECT TIMESTAMPDIFF(DAY | MONTH | YEAR, '2023-10-01', '2002-09-01');
 
-SELECT DATE(NOW()) / TIME(NOW()) / YEAR(NOW()) / MONTH(NOW()) / DAY(NOW()) 
-  / HOUR(NOW()) / MINUTE(NOW()) / SECOND(NOW()); 
-  -- 현재 날짜, 시간, 년, 월, 일, 시, 분, 초 반환</pre>
-
-<h2>EXTRACT; 날짜에서 특정 부분 추출</h2>
-<pre>SELECT EXTRACT(YEAR FROM '2023-10-01'); -- 2023
-SELECT EXTRACT(MONTH FROM '2023-10-01'); -- 10
-SELECT EXTRACT(DAY FROM '2023-10-01'); -- 1</pre>
+SELECT name, birth, CURDATE(), TIMESTAMPDIFF(YEAR, birth, CURDATE()) AS age
+FROM employees WHERE birth IS NOT NULL;</pre>
 
 <h2>date_add; 날짜에 시간 더하기</h2>
-<pre>SELECT DATE_ADD('2023-10-01', INTERVAL 1 DAY); -- '2023-10-02'
+<pre>SELECT DATE_ADD | ADDDATE('2023-10-01', INTERVAL 1 DAY); -- '2023-10-02'
 SELECT DATE_ADD('2023-10-01', INTERVAL 1 MONTH); -- '2023-11-01'</pre>
 
 <h2>date_sub; 날짜에서 시간 빼기</h2>
-<pre>SELECT DATE_SUB('2023-10-01', INTERVAL 1 DAY); -- '2023-09-30'
+<pre>SELECT DATE_SUB | SUBDATE('2023-10-01', INTERVAL 1 DAY); -- '2023-09-30'
 SELECT DATE_SUB('2023-10-01', INTERVAL 1 MONTH); -- '2023-09-01'</pre>
-
-<h2>date_diff; 날짜 차이</h2>
-<pre>SELECT DATEDIFF('2023-10-01', '2023-09-01'); -- 30
-SELECT DATEDIFF('2023-10-01 12:00:00', '2023-09-01 12:00:00'); -- 30</pre>
-
-<h2>timestampdiff; 두 날짜 사이의 차이를 특정 단위로 반환</h2>
-<pre>SELECT TIMESTAMPDIFF(DAY, '2023-10-01', '2023-09-01'); -- -30
-SELECT TIMESTAMPDIFF(MONTH, '2023-10-01', '2023-09-01'); -- -1</pre>
 
 <h2>unix_timestamp; 현재 시간을 유닉스 타임스탬프로 반환</h2>
 <pre>SELECT UNIX_TIMESTAMP(); -- 현재 시간을 유닉스 타임스탬프로 반환
 SELECT UNIX_TIMESTAMP('2023-10-01 12:00:00'); -- 특정 시간을 유닉스 타임스탬프로 반환</pre>
+
 <h2>from_unixtime; 유닉스 타임스탬프를 날짜로 변환</h2>
 <pre>SELECT FROM_UNIXTIME(UNIX_TIMESTAMP()); -- 현재 시간을 날짜로 변환
 SELECT FROM_UNIXTIME(1696129200); -- 특정 유닉스 타임스탬프를 날짜로 변환</pre>
 
-<h2>utc_date; UTC 날짜 반환</h2>
-<pre>SELECT UTC_DATE(); -- UTC 날짜 반환</pre>
+<h2>utc_date, UTC_TIME ; UTC 반환</h2>
+<pre>SELECT UTC_DATE(); -- UTC 날짜 반환
+SELECT UTC_TIME(); -- UTC 시간 반환</pre>
 
-<h2>utc_time; UTC 시간 반환</h2>
-<pre>SELECT UTC_TIME(); -- UTC 시간 반환</pre>
-
-<h1>복사해서 새로운 테이블로 만듦</h1>
-<pre>-- 이거는 안됨
-SELECT * INTO CustomersBackup2017
-  SELECT * FROM Customers;</pre>
-<pre>-- Primary Key와 Index, Auto Increment는 제외하고 복사.
-  CREATE TABLE b_customer SELECT * FROM customer;</pre>
 </main>
 </body>
 </html>

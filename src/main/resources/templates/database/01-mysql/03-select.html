@@ -11,10 +11,7 @@
 <h3>끝에 \G하면 row 단위로 보여줌</h3>
 <h3>explain; 세부 정보를 보여줌</h3>
 <pre>explain select * from abc\G;</pre>
-<!-- ############## distinct #########################-->
-<h2>SELECT DISTINCT; 중복제거</h2>
-  <pre>SELECT DISTINCT column1, column2 FROM table_name;
-SELECT Count(DISTINCT column1) FROM table_name;</pre>
+
 <!-- ############## 선택자 #########################-->
 <h2>선택자 종류</h2>
 <PRE style="font-size: 1rem;font-weight: bold;">
@@ -98,7 +95,10 @@ WHERE column_name operator
   WHERE employee_id IN
   (SELECT DISTINCT customer_id FROM transactions
   WHERE customer_id IS NOT NULL);</pre>
-
+<pre>SELECT categoryId, CategoryName,
+  (select max(price) from products p where c.CategoryId = p.CategoryID) as CatMax,
+  (select avg(price) from products p where c.CategoryId = p.CategoryID) as Cat평균
+from categories c;</pre>
 
 <!-- ############## exists, any, all #########################-->
 <h1>EXISTS</h1>
@@ -117,14 +117,15 @@ WHERE ProductID = ANY
   (SELECT ProductID FROM OrderDetails
   WHERE Quantity = 10); </pre>
 <pre>SELECT name FROM product
-  WHERE id = ANY 
-  ( SELECT id FROM orders WHERE quantity &lt; 4);</pre>
-
+  WHERE id = ANY -- WHERE ID IN 과 동일
+  ( SELECT order_id FROM orders WHERE quantity &lt; 4);</pre>
 
 <h1>ALL</h1>
 <pre>SELECT name FROM product
   WHERE id = ALL 
   ( SELECT order_id FROM orders WHERE quantity &lt; 14);</pre>  
+
+
 <script>
   // function test() {
   //   alert('test');

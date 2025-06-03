@@ -7,6 +7,7 @@
 <main>
 <h1>SQL 기본(MySql 기준으로 함</h1>
 <h2>Mysql 설치기 기존에 mariadb에서 3306을 사용하고 있어 3305로 변경</h2>
+<h2>나의 정책: column은 모두소문자 "_"로 연결, 테이블이름은 복수형으로</h2>
   <h3>Mysql terminal, mysqlsh 사용 방법</h3>
   <pre>cmd창에서
   mysqlsh --sql  root@localhost:3305/mydb
@@ -20,8 +21,7 @@
   \sql // sql 모드로 변경, ctr + C 로 종료
   \js // JavaScript 모드로 변경
   \py // Python 모드로 변경
-  \s , \status // 현재 세션 정보 출력
-  </pre>
+  \s , \status // 현재 세션 정보 출력  </pre>
   <h3>session collections</h3>
   <pre> mysqlsh mode
   session.createSchema('test_schema')

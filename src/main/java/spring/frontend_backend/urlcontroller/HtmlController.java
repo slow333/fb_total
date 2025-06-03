@@ -7,10 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/html")
 public class HtmlController {
-
-  // ==============================================================================
-  // 01- document
-  // ==============================================================================
+// ========================== 01- document ====================================
   @GetMapping("/01-document/01-browser-env")
   public String docBrowserEvn() {
     return "html/01-document/01-browser-env";
@@ -60,9 +57,7 @@ public class HtmlController {
     return "html/01-document/10-position";
   }
 
-  // ==============================================================================
-  //02 event
-  // ==============================================================================
+  // ========================== 02 event ========================================
   @GetMapping("/02-event/01-browser-event")
   public String eventBrowserEvent() {
     return "html/02-event/01-browser-event";
@@ -72,9 +67,7 @@ public class HtmlController {
     return "html/02-event/02-event-bubbling";
   }
 
-  // ==============================================================================
-  //03 UI event
-  // ==============================================================================
+  // ========================= 03 UI event ==================================
   @GetMapping("/03-UI-event/01-mouse-event")
   public String uIEventMouse() {
     return "html/03-UI-event/01-mouse-event";
@@ -92,9 +85,7 @@ public class HtmlController {
     return "html/03-UI-event/04-scroll";
   }
 
-  // ==============================================================================
-  //04 form
-  // ==============================================================================
+  // =========================== 04 form ==================================
   @GetMapping("/04-form/01-property-method")
   public String formPropertyMethod() {
     return "html/04-form/01-property-method";
@@ -112,9 +103,7 @@ public class HtmlController {
     return "html/04-form/04-submit";
   }
 
-  // ==============================================================================
-  //05 Ect
-  // ==============================================================================
+  // ==================== 05 Ect ===============================
   @GetMapping("/05-etc/01-media")
   public String etcMedia() {
     return "html/05-etc/01-media";
@@ -124,9 +113,7 @@ public class HtmlController {
     return "html/05-etc/01-todo-list";
   }
 
-  // ==============================================================================
-  //06 html basic
-  // ==============================================================================
+  // ===================== 06 html basic ===========================
   @GetMapping("/06-html-basic/01-flex")
   public String htmlBasicFlex() {
     return "html/06-html-basic/01-flex";
@@ -134,6 +121,11 @@ public class HtmlController {
   @GetMapping("/06-html-basic/02-css-grid")
   public String htmlBasicCssGrid() {
     return "html/06-html-basic/02-css-grid";
+  }
+
+  @GetMapping("/06-html-basic/03-color-map")
+  public String htmlBasicColorMap() {
+    return "html/06-html-basic/03-color-map";
   }
 
 }

@@ -20,7 +20,7 @@
   LEFT JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID
   GROUP BY ShipperName;</pre>
 <pre>-- 출고된 연도 별로 가격의 합
-SELECT SUM(price), model_year FROM car GROUP BY(model_year); -- COUNT, MAX, MIN, AVG 등도 사용 가능
+SELECT SUM(price), model_year FROM car GROUP BY model_year; -- COUNT, MAX, MIN, AVG 등도 사용 가능
 SELECT SUM(price), customer_id FROM car GROUP BY customer_id;
 </pre>  
 
@@ -47,6 +47,14 @@ HAVING COUNT(Orders.OrderID) &gt; 25;</pre>
   GROUP BY model 
   HAVING COUNT(*) > 1 
   ORDER BY COUNT(*) DESC;</pre>
+
+  <!-- ############## distinct #########################-->
+<h2>SELECT DISTINCT; 중복제거</h2>
+  <pre>SELECT DISTINCT column1, column2 FROM table_name;
+SELECT Count(DISTINCT column1) FROM table_name;</pre>
+<pre>SELECT country, COUNT(DISTINCT city) FROM customers
+  GROUP BY country; -- 중복되지 않는 CITY의 개수를 샘</pre>
+</pre>
 
 <H2>중복된 모델을 가진 자동차를 삭제</H2>
 <pre>DELETE c1

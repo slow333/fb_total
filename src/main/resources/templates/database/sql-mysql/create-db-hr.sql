@@ -16,8 +16,6 @@ INSERT INTO offices VALUES (8,'9 Grayhawk Trail','New York City','NY');
 INSERT INTO offices VALUES (9,'16862 Westend Hill','Knoxville','TN');
 INSERT INTO offices VALUES (10,'4 Bluestem Parkway','Savannah','GA');
 
-
-
 CREATE TABLE employees (
   employee_id int(11) NOT NULL,
   first_name varchar(50) NOT NULL,
