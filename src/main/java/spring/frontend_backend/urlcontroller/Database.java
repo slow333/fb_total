@@ -59,6 +59,10 @@ public class Database {
   public String functionsAndEtc() {
     return "database/01-mysql/09-function-and-etc";
   }
+    @GetMapping("/01-mysql/10-procedure-trigger")
+  public String functionsProcedureTrigger() {
+    return "database/01-mysql/10-procedure-trigger";
+  }
   
   // =====================================================================================
   // ############### 2장: PostgreSQL #################
